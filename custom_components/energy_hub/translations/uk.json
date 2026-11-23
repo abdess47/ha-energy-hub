@@ -66,5 +66,28 @@
         "name": "Сповіщення"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Обмеження інвертора сьогодні: втрачено {kwh} kWh."
+    },
+    "alert_string_lagging": {
+      "message": "{name} генерує на {pct} % менше за інших."
+    },
+    "alert_shading": {
+      "message": "Повторюване затінення {unit} з {start} до {end}."
+    },
+    "alert_soiling": {
+      "message": "Втрати від забруднення {loss} %: очищення може окупитися."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: комірка {cell} досягне порогу розкиду через {days} дн."
+    },
+    "alert_battery_exchange": {
+      "message": "Одна батарея заряджає іншу ({kw} kW): енергія втрачається на перекачуванні."
+    },
+    "alert_stale": {
+      "message": "Джерело Energy Hub перестало оновлюватися: {entities}"
+    }
   }
 }

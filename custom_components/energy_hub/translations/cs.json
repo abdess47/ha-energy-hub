@@ -66,5 +66,28 @@
         "name": "Upozornění"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Ořezání střídače dnes: ztraceno {kwh} kWh."
+    },
+    "alert_string_lagging": {
+      "message": "{name} vyrábí o {pct} % méně než ostatní."
+    },
+    "alert_shading": {
+      "message": "Opakované stínění {unit} od {start} do {end}."
+    },
+    "alert_soiling": {
+      "message": "Ztráta znečištěním {loss} %: čištění se může vyplatit."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: článek {cell} dosáhne prahu rozptylu za {days} dní."
+    },
+    "alert_battery_exchange": {
+      "message": "Jedna baterie nabíjí druhou ({kw} kW): energie se ztrácí v oběhu."
+    },
+    "alert_stale": {
+      "message": "Zdroj Energy Hub se přestal aktualizovat: {entities}"
+    }
   }
 }

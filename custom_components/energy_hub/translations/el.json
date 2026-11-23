@@ -66,5 +66,28 @@
         "name": "Ειδοποιήσεις"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Αποκοπή αντιστροφέα σήμερα: χάθηκαν {kwh} kWh."
+    },
+    "alert_string_lagging": {
+      "message": "Η {name} παράγει {pct} % λιγότερο από τις άλλες."
+    },
+    "alert_shading": {
+      "message": "Επαναλαμβανόμενη σκίαση {unit} από {start} έως {end}."
+    },
+    "alert_soiling": {
+      "message": "Απώλεια από ρύπανση {loss} %: ένας καθαρισμός μπορεί να αξίζει."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: το στοιχείο {cell} φτάνει το όριο διασποράς σε {days} ημέρες."
+    },
+    "alert_battery_exchange": {
+      "message": "Μια μπαταρία φορτίζει άλλη ({kw} kW): ενέργεια χάνεται στη μεταφορά."
+    },
+    "alert_stale": {
+      "message": "Μια πηγή του Energy Hub σταμάτησε να ενημερώνεται: {entities}"
+    }
   }
 }

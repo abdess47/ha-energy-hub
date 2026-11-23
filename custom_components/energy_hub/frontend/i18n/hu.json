@@ -195,6 +195,7 @@
   "active": "aktív",
   "active_n": "{n} aktív",
   "no_notify": "nincs",
+  "detected": "észlelve",
   "inactive": "inaktív",
   "after_years": "{v} év után",
   "alert_rules": "Riasztási szabályok",

@@ -66,5 +66,28 @@
         "name": "Upozorenja"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Odsecanje invertora danas: izgubljeno {kwh} kWh."
+    },
+    "alert_string_lagging": {
+      "message": "{name} proizvodi {pct} % manje od ostalih."
+    },
+    "alert_shading": {
+      "message": "Ponavljajuća senka {unit} od {start} do {end}."
+    },
+    "alert_soiling": {
+      "message": "Gubitak zbog prljavštine {loss} %: čišćenje se može isplatiti."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: ćelija {cell} dostiže prag rasipanja za {days} dana."
+    },
+    "alert_battery_exchange": {
+      "message": "Jedna baterija puni drugu ({kw} kW): energija se gubi u kruženju."
+    },
+    "alert_stale": {
+      "message": "Izvor Energy Hub-a se više ne ažurira: {entities}"
+    }
   }
 }

@@ -66,5 +66,28 @@
         "name": "Сигнали"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Отрязване на инвертора днес: загубени {kwh} kWh."
+    },
+    "alert_string_lagging": {
+      "message": "{name} произвежда с {pct} % по-малко от останалите."
+    },
+    "alert_shading": {
+      "message": "Повтарящо се засенчване {unit} от {start} до {end}."
+    },
+    "alert_soiling": {
+      "message": "Загуба от замърсяване {loss} %: почистване може да се изплати."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: клетка {cell} достига прага на разсейване след {days} дни."
+    },
+    "alert_battery_exchange": {
+      "message": "Една батерия зарежда друга ({kw} kW): енергия се губи в кръговрата."
+    },
+    "alert_stale": {
+      "message": "Източник на Energy Hub спря да се обновява: {entities}"
+    }
   }
 }

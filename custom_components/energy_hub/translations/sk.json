@@ -66,5 +66,28 @@
         "name": "Upozornenia"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Orezanie meniča dnes: stratené {kwh} kWh."
+    },
+    "alert_string_lagging": {
+      "message": "{name} vyrába o {pct} % menej než ostatné."
+    },
+    "alert_shading": {
+      "message": "Opakované tienenie {unit} od {start} do {end}."
+    },
+    "alert_soiling": {
+      "message": "Strata znečistením {loss} %: čistenie sa môže oplatiť."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: článok {cell} dosiahne prah rozptylu o {days} dní."
+    },
+    "alert_battery_exchange": {
+      "message": "Jedna batéria nabíja druhú ({kw} kW): energia sa stráca v obehu."
+    },
+    "alert_stale": {
+      "message": "Zdroj Energy Hub sa prestal aktualizovať: {entities}"
+    }
   }
 }

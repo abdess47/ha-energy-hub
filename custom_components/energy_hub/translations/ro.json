@@ -66,5 +66,28 @@
         "name": "Alerte"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Limitarea invertorului azi: {kwh} kWh pierduți."
+    },
+    "alert_string_lagging": {
+      "message": "{name} produce cu {pct} % mai puțin decât celelalte."
+    },
+    "alert_shading": {
+      "message": "Umbrire recurentă {unit} de la {start} la {end}."
+    },
+    "alert_soiling": {
+      "message": "Pierdere din murdărie {loss} %: o curățare poate merita."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: celula {cell} atinge pragul de dispersie în {days} zile."
+    },
+    "alert_battery_exchange": {
+      "message": "O baterie încarcă alta ({kw} kW): energie pierdută dus-întors."
+    },
+    "alert_stale": {
+      "message": "O sursă Energy Hub nu se mai actualizează: {entities}"
+    }
   }
 }

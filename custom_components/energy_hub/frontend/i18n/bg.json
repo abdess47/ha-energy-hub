@@ -195,6 +195,7 @@
   "active": "активно",
   "active_n": "{n} активни",
   "no_notify": "няма",
+  "detected": "открито",
   "inactive": "неактивно",
   "after_years": "след {v} години",
   "alert_rules": "Правила за сигнали",

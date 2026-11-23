@@ -195,6 +195,7 @@
   "active": "активне",
   "active_n": "Активних: {n}",
   "no_notify": "немає",
+  "detected": "виявлено",
   "inactive": "неактивне",
   "after_years": "через {v} р.",
   "alert_rules": "Правила сповіщень",

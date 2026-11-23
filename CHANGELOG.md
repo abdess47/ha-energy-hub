@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0 - 2026-11-23
+
+### Features
+- Alerts go to Notify Hub (`notify.notify_hub`) when it is installed and no `notify:` is set; the Settings tab shows the target as detected.
+- `notify:` accepts a notify entity (sent with `notify.send_message`) as well as a legacy notify action.
+- Notifications are written in Home Assistant's language (22 languages; regional variants use their base language).
+
 ## 1.2.0 - 2026-11-23
 
 ### Features

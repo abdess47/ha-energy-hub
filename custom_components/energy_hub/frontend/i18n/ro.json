@@ -195,6 +195,7 @@
   "active": "activă",
   "active_n": "{n} activă(e)",
   "no_notify": "niciuna",
+  "detected": "detectată",
   "inactive": "inactivă",
   "after_years": "după {v} ani",
   "alert_rules": "Reguli de alertă",

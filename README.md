@@ -31,7 +31,7 @@ Home Assistant integration and sidebar panel for **solar installations**: produc
 - **Loss detection based on the PV monitoring literature** (see [How it works](#how-it-works)): clipping, recurring shading per panel, soiling, string mismatch, degradation, export limitation, unavailability
 - **Automatic detection** of the installation from the Energy dashboard settings and from 21 integration profiles; YAML to override anything
 - 12 **sensors** (self-consumption, self-sufficiency, solar energy today, specific yield, performance index, losses, clipping, fleet charge and power, autonomy, savings, alerts) for your own dashboards and automations
-- `energy_hub_alert` **event** and optional **notifications** (once a day per alert) to the notify action of your choice
+- `energy_hub_alert` **event** and **notifications** in Home Assistant's language (once a day per alert): through [Notify Hub](https://github.com/juju35/ha-notify-hub) when it is installed, or to the notify action or entity of your choice
 - **Sidebar badge** with the number of alerts, red when one is an error
 - **Demo mode**: a simulated installation (two strings, sixteen panels, three batteries, more than a year of history) to try every screen
 - Diagnostics download with the detected installation only: no location, no history of values
@@ -162,7 +162,7 @@ energy_hub:
     commissioned: 2023-04-12
     inverter_replacement_cost: 1400
     inverter_lifetime_years: 12
-  notify: notify.mobile_app_phone # alerts, once a day each
+  notify: notify.mobile_app_phone # alerts, once a day each; default: notify.notify_hub when Notify Hub is installed
 ```
 
 The **Settings** tab shows the YAML equivalent to what is detected, ready to copy.
@@ -183,6 +183,8 @@ The **Settings** tab shows the YAML equivalent to what is detected, ready to cop
 ### Events
 
 `energy_hub_alert` is fired once per alert and per day, with `kind` (`clipping`, `string_lagging`, `shading`, `soiling`, `cell_drift`, `battery_exchange`, `stale`), `severity` and the alert's details.
+
+The same alerts are sent as notifications, written in Home Assistant's language: to `notify:` when it is set (a notify entity through `notify.send_message`, or a legacy notify action), otherwise to `notify.notify_hub` when [Notify Hub](https://github.com/juju35/ha-notify-hub) is installed, where its routing rules decide who receives them. Nothing is sent in demo mode.
 
 ## Screenshots
 

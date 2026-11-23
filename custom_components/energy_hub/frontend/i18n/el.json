@@ -195,6 +195,7 @@
   "active": "ενεργή",
   "active_n": "Ενεργές: {n}",
   "no_notify": "καμία",
+  "detected": "εντοπίστηκε",
   "inactive": "ανενεργή",
   "after_years": "μετά από {v} έτη",
   "alert_rules": "Κανόνες ειδοποιήσεων",

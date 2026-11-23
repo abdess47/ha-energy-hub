@@ -66,5 +66,28 @@
         "name": "Advarsler"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Klipning i inverteren i dag: {kwh} kWh tabt."
+    },
+    "alert_string_lagging": {
+      "message": "{name} producerer {pct} % mindre end de andre."
+    },
+    "alert_shading": {
+      "message": "Tilbagevendende skygge {unit} fra {start} til {end}."
+    },
+    "alert_soiling": {
+      "message": "Tab til snavs {loss} %: en rengøring kan betale sig."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: celle {cell} når spredningsgrænsen om {days} dage."
+    },
+    "alert_battery_exchange": {
+      "message": "Et batteri lader et andet ({kw} kW): energi tabes frem og tilbage."
+    },
+    "alert_stale": {
+      "message": "En kilde i Energy Hub opdateres ikke længere: {entities}"
+    }
   }
 }

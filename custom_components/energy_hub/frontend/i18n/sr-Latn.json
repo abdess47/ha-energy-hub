@@ -195,6 +195,7 @@
   "active": "aktivno",
   "active_n": "Aktivna: {n}",
   "no_notify": "nema",
+  "detected": "otkriveno",
   "inactive": "neaktivno",
   "after_years": "posle {v} god.",
   "alert_rules": "Pravila upozorenja",

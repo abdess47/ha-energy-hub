@@ -5,24 +5,28 @@ from __future__ import annotations
 import logging
 import time
 from datetime import timedelta
+from pathlib import Path
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant, State, callback
 from homeassistant.helpers.storage import Store
+from homeassistant.helpers.translation import async_get_translations
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
 from . import demo
 from .analytics.clearsky import Plane, clearsky_power
 from .config import HubConfig
-from .const import DOMAIN, EVENT_ALERT, STALE_SECONDS, STORAGE_KEY, STORAGE_VERSION, UPDATE_SECONDS
+from .const import DOMAIN, EVENT_ALERT, NOTIFY_HUB, STALE_SECONDS, STORAGE_KEY, STORAGE_VERSION, UPDATE_SECONDS
 from .engine import build_snapshot, estimate_kwp
 from .history import BatteryReading, History, Reading
 from .sources import Installation, discover, load_profiles
 
 _LOGGER = logging.getLogger(__name__)
+# Languages with a translation file of their own
+TRANSLATED = frozenset(p.stem for p in (Path(__file__).parent / "translations").glob("*.json"))
 
 type EnergyHubConfigEntry = ConfigEntry[EnergyHubCoordinator]
 
@@ -247,8 +251,15 @@ class EnergyHubCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return clearsky_power(now, self.hass.config.latitude, self.hass.config.longitude, planes)
 
     # ---- alerts
+    @property
+    def notify_target(self) -> str | None:
+        """Where alerts are sent: the YAML `notify:` target, else Notify Hub's entity when it is installed."""
+        if self.cfg.notify:
+            return self.cfg.notify
+        return NOTIFY_HUB if self.hass.states.get(NOTIFY_HUB) else None
+
     async def _async_alerts(self, snapshot: dict[str, Any]) -> None:
-        """Fire an event, and notify when configured, once a day per alert."""
+        """Fire an event, and notify when there is a target, once a day per alert."""
         today = snapshot["generated"][:10]
         for alert in snapshot["alerts"]:
             key = f"{alert['kind']}:{alert.get('name') or alert.get('unit') or alert.get('battery') or ''}"
@@ -256,15 +267,56 @@ class EnergyHubCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 continue
             self._notified[key] = today
             self.hass.bus.async_fire(EVENT_ALERT, alert)
-            if self.cfg.notify and not self.demo:
-                domain, _, service = self.cfg.notify.partition(".")
-                if self.hass.services.has_service(domain, service):
-                    await self.hass.services.async_call(
-                        domain,
-                        service,
-                        {"title": "Energy Hub", "message": _alert_text(alert)},
-                        blocking=False,
-                    )
+            target = self.notify_target
+            if target and not self.demo:
+                await self._async_notify(target, await self._async_alert_text(alert))
+
+    async def _async_notify(self, target: str, message: str) -> None:
+        """Send through a notify entity (`notify.send_message`, Notify Hub's way) or a legacy notify action."""
+        data = {"title": "Energy Hub", "message": message}
+        domain, _, service = target.partition(".")
+        if domain == "notify" and self.hass.states.get(target) is not None:
+            await self.hass.services.async_call("notify", "send_message", {"entity_id": target, **data}, blocking=False)
+        elif self.hass.services.has_service(domain, service):
+            await self.hass.services.async_call(domain, service, data, blocking=False)
+        else:
+            _LOGGER.warning("Energy Hub: notify target %s not found", target)
+
+    async def _async_alert_text(self, alert: dict[str, Any]) -> str:
+        """The alert in Home Assistant's language (translations `exceptions.alert_<kind>`), English as fallback."""
+        language = self.hass.config.language or "en"
+        # A regional variant without a file of its own (pt-BR) takes its base language rather than English.
+        lang = next((x for x in (language, language.split("-")[0]) if x in TRANSLATED), "en")
+        texts = await async_get_translations(self.hass, lang, "exceptions", [DOMAIN])
+        template = texts.get(f"component.{DOMAIN}.exceptions.alert_{alert['kind']}.message")
+        if template:
+            try:
+                return template.format(**alert_params(alert))
+            except (KeyError, IndexError, ValueError):
+                pass
+        return _alert_text(alert)
+
+
+def alert_params(alert: dict[str, Any]) -> dict[str, str]:
+    """The placeholders of the translated alert messages."""
+
+    def hm(minute: int | None) -> str:
+        return "" if minute is None else f"{minute // 60}:{minute % 60:02d}"
+
+    return {
+        "kwh": f"{alert.get('kwh', 0)}",
+        "name": str(alert.get("name") or ""),
+        "pct": f"{round((1 - (alert.get('relative') or 1)) * 100)}",
+        "unit": str(alert.get("unit") or ""),
+        "start": hm(alert.get("start")),
+        "end": hm(alert.get("end")),
+        "loss": f"{round((alert.get('loss') or 0) * 100, 1)}",
+        "battery": str(alert.get("battery") or ""),
+        "cell": str(alert.get("cell") or ""),
+        "days": str(alert.get("days") or ""),
+        "kw": f"{alert.get('kw', 0)}",
+        "entities": ", ".join(alert.get("entities") or []),
+    }
 
 
 def _alert_text(alert: dict[str, Any]) -> str:

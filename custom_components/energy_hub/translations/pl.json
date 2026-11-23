@@ -66,5 +66,28 @@
         "name": "Alerty"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Obcinanie falownika dziś: utracono {kwh} kWh."
+    },
+    "alert_string_lagging": {
+      "message": "{name} produkuje o {pct} % mniej niż pozostałe."
+    },
+    "alert_shading": {
+      "message": "Powtarzające się zacienienie {unit} od {start} do {end}."
+    },
+    "alert_soiling": {
+      "message": "Strata przez zabrudzenie {loss} %: czyszczenie może się opłacić."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: ogniwo {cell} osiągnie próg rozrzutu za {days} dni."
+    },
+    "alert_battery_exchange": {
+      "message": "Jedna bateria ładuje drugą ({kw} kW): energia tracona w obiegu."
+    },
+    "alert_stale": {
+      "message": "Źródło Energy Hub przestało się aktualizować: {entities}"
+    }
   }
 }

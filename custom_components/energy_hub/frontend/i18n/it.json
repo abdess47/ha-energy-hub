@@ -195,6 +195,7 @@
   "active": "attiva",
   "active_n": "{n} attiva/e",
   "no_notify": "nessuna",
+  "detected": "rilevata",
   "inactive": "inattiva",
   "after_years": "dopo {v} anni",
   "alert_rules": "Regole di avviso",

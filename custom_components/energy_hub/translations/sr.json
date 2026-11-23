@@ -66,5 +66,28 @@
         "name": "Упозорења"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Одсецање инвертора данас: изгубљено {kwh} kWh."
+    },
+    "alert_string_lagging": {
+      "message": "{name} производи {pct} % мање од осталих."
+    },
+    "alert_shading": {
+      "message": "Понављајућа сенка {unit} од {start} до {end}."
+    },
+    "alert_soiling": {
+      "message": "Губитак због прљавштине {loss} %: чишћење се може исплатити."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: ћелија {cell} достиже праг расипања за {days} дана."
+    },
+    "alert_battery_exchange": {
+      "message": "Једна батерија пуни другу ({kw} kW): енергија се губи у кружењу."
+    },
+    "alert_stale": {
+      "message": "Извор Energy Hub-а се више не ажурира: {entities}"
+    }
   }
 }

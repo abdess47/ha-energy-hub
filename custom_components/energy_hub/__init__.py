@@ -176,11 +176,14 @@ def ws_settings(hass: HomeAssistant, connection: websocket_api.ActiveConnection,
             coordinator.installation,
             yaml_configured=DATA_YAML in hass.data,
             show_panel=coordinator.config_entry.options.get(CONF_SHOW_PANEL, True),
+            notify=coordinator.notify_target,
         ),
     )
 
 
-def settings_payload(cfg, inst, *, yaml_configured: bool, show_panel: bool) -> dict[str, Any]:
+def settings_payload(
+    cfg, inst, *, yaml_configured: bool, show_panel: bool, notify: str | None = None
+) -> dict[str, Any]:
     """What the Settings tab shows: the YAML in use (rebuilt from the configuration) and the values behind it."""
     return {
         "yaml_configured": yaml_configured,
@@ -206,7 +209,8 @@ def settings_payload(cfg, inst, *, yaml_configured: bool, show_panel: bool) -> d
             "subsidy": cfg.subsidy,
             "commissioned": cfg.commissioned.isoformat() if cfg.commissioned else None,
         },
-        "notify": cfg.notify,
+        "notify": notify or cfg.notify,
+        "notify_auto": bool(notify) and not cfg.notify,
     }
 
 

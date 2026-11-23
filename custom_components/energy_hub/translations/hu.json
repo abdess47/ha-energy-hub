@@ -66,5 +66,28 @@
         "name": "Riasztások"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Inverter levágás ma: {kwh} kWh elveszett."
+    },
+    "alert_string_lagging": {
+      "message": "{name} {pct} %-kal kevesebbet termel a többinél."
+    },
+    "alert_shading": {
+      "message": "Visszatérő árnyékolás {unit} {start} és {end} között."
+    },
+    "alert_soiling": {
+      "message": "Szennyeződési veszteség {loss} %: egy tisztítás megérheti."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: a(z) {cell}. cella {days} nap múlva eléri a szórási küszöböt."
+    },
+    "alert_battery_exchange": {
+      "message": "Egyik akkumulátor tölti a másikat ({kw} kW): energia vész el oda-vissza."
+    },
+    "alert_stale": {
+      "message": "Az Energy Hub egyik forrása nem frissül: {entities}"
+    }
   }
 }

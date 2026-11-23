@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Final
 
 DOMAIN: Final = "energy_hub"
-VERSION: Final = "1.2.0"
+VERSION: Final = "1.3.0"
 
 # Options of the entry (set in the UI or in YAML; YAML wins).
 CONF_DEMO: Final = "demo"
@@ -46,3 +46,6 @@ PANEL_ICON: Final = "mdi:solar-power-variant"
 PANEL_TITLE: Final = "Energy"
 
 EVENT_ALERT: Final = f"{DOMAIN}_alert"
+
+# Notify Hub (juju35/ha-notify-hub): its single notify entity, used for the alerts when no `notify:` is set.
+NOTIFY_HUB: Final = "notify.notify_hub"

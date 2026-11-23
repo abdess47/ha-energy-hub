@@ -195,6 +195,7 @@
   "active": "активно",
   "active_n": "Активна: {n}",
   "no_notify": "нема",
+  "detected": "откривено",
   "inactive": "неактивно",
   "after_years": "после {v} год.",
   "alert_rules": "Правила упозорења",
