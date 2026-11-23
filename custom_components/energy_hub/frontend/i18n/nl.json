@@ -195,6 +195,7 @@
   "active": "actief",
   "active_n": "{n} actief",
   "no_notify": "geen",
+  "detected": "gevonden",
   "inactive": "inactief",
   "after_years": "na {v} jaar",
   "alert_rules": "Meldingsregels",

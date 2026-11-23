@@ -66,5 +66,28 @@
         "name": "Alertas"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Corte do inversor hoje: {kwh} kWh perdidos."
+    },
+    "alert_string_lagging": {
+      "message": "{name} produz {pct} % menos do que os outros."
+    },
+    "alert_shading": {
+      "message": "Sombra recorrente {unit} das {start} às {end}."
+    },
+    "alert_soiling": {
+      "message": "Perda por sujidade {loss} %: uma limpeza pode compensar."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: a célula {cell} atinge o limiar de dispersão em {days} dias."
+    },
+    "alert_battery_exchange": {
+      "message": "Uma bateria carrega outra ({kw} kW): energia perdida nas idas e voltas."
+    },
+    "alert_stale": {
+      "message": "Uma fonte do Energy Hub deixou de atualizar: {entities}"
+    }
   }
 }

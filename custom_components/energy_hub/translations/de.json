@@ -66,5 +66,28 @@
         "name": "Warnungen"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Abregelung des Wechselrichters heute: {kwh} kWh verloren."
+    },
+    "alert_string_lagging": {
+      "message": "{name} erzeugt {pct} % weniger als die anderen."
+    },
+    "alert_shading": {
+      "message": "Wiederkehrende Verschattung {unit} von {start} bis {end}."
+    },
+    "alert_soiling": {
+      "message": "Verlust durch Verschmutzung {loss} %: eine Reinigung kann sich lohnen."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: Zelle {cell} erreicht die Spreizungsgrenze in {days} Tagen."
+    },
+    "alert_battery_exchange": {
+      "message": "Eine Batterie lädt eine andere ({kw} kW): Energie geht beim Hin und Her verloren."
+    },
+    "alert_stale": {
+      "message": "Eine Quelle von Energy Hub aktualisiert nicht mehr: {entities}"
+    }
   }
 }

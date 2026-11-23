@@ -66,5 +66,28 @@
         "name": "Opozorila"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Rezanje razsmernika danes: izgubljeno {kwh} kWh."
+    },
+    "alert_string_lagging": {
+      "message": "{name} proizvede {pct} % manj od ostalih."
+    },
+    "alert_shading": {
+      "message": "Ponavljajoče senčenje {unit} od {start} do {end}."
+    },
+    "alert_soiling": {
+      "message": "Izguba zaradi umazanije {loss} %: čiščenje se lahko splača."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: celica {cell} doseže prag razpršenosti čez {days} dni."
+    },
+    "alert_battery_exchange": {
+      "message": "Ena baterija polni drugo ({kw} kW): energija se izgublja v krogu."
+    },
+    "alert_stale": {
+      "message": "Vir Energy Hub se ne posodablja več: {entities}"
+    }
   }
 }

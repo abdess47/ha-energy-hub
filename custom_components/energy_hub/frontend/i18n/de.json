@@ -195,6 +195,7 @@
   "active": "aktiv",
   "active_n": "{n} aktiv",
   "no_notify": "keine",
+  "detected": "erkannt",
   "inactive": "inaktiv",
   "after_years": "nach {v} Jahren",
   "alert_rules": "Warnregeln",

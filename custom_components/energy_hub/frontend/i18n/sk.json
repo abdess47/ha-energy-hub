@@ -195,6 +195,7 @@
   "active": "aktívne",
   "active_n": "Aktívne: {n}",
   "no_notify": "žiadna",
+  "detected": "zistená",
   "inactive": "neaktívne",
   "after_years": "po {v} rokoch",
   "alert_rules": "Pravidlá upozornení",

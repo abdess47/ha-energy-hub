@@ -1,7 +1,7 @@
 // Energy Hub — sidebar panel. Draws everything itself (no Lovelace card): the illustrated banner, which folds into a
 // sticky bar on scroll, and six tabs (Overview, Production, Batteries, Losses, Finances, Settings). The data comes from
 // the integration's snapshot (websocket `energy_hub/subscribe`, pushed every 30 seconds).
-const ENERGY_HUB_PANEL_VERSION = '1.2.0';
+const ENERGY_HUB_PANEL_VERSION = '1.3.0';
 
 const EH_ICONS = {
   'bell-outline': 'M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19M17 11C17 8.2 14.8 6 12 6S7 8.2 7 11V18H17V11Z',
@@ -206,6 +206,7 @@ const EH_I18N = {
     active: 'active',
     active_n: '{n} active',
     no_notify: 'none',
+    detected: 'detected',
     inactive: 'inactive',
     after_years: 'after {v} years',
     alert_rules: 'Alert rules',
@@ -1493,7 +1494,7 @@ class EnergyHubPanel extends HTMLElement {
     const kinds = ['clipping', 'string_lagging', 'shading', 'soiling', 'cell_drift', 'battery_exchange', 'stale'];
     const rows = kinds.map((k) => `<div class="check"><span class="pa sm" style="background:${active.has(k) ? '#FCEBEB' : '#EAF3DE'};color:${active.has(k) ? '#A32D2D' : EH_GREEN}">${ehIcon(active.has(k) ? 'alert-outline' : 'check', 14)}</span><div class="tt"><div class="a1">${ehEsc(this._t(`alert_kind.${k}`))}</div><div class="t3">${ehEsc(this._t(`alert_rule.${k}`))}</div></div><span class="status" style="background:${active.has(k) ? '#FCEBEB' : 'var(--secondary-background-color)'};color:${active.has(k) ? '#A32D2D' : 'var(--secondary-text-color)'}">${ehEsc(this._t(active.has(k) ? 'active' : 'inactive'))}</span></div>`).join('');
     let o = this._box(this._t('alert_rules'), this._t('active_n', { n: active.size }), rows);
-    o += this._box(this._t('notifications'), '', `<table class="roles"><tr><td>${ehEsc(this._t('notify_target'))}</td><td>${s.notify ? `<code>${ehEsc(s.notify)}</code>` : ehEsc(this._t('no_notify'))}</td></tr><tr><td>${ehEsc(this._t('event_name'))}</td><td><code>energy_hub_alert</code></td></tr><tr><td>${ehEsc(this._t('frequency'))}</td><td>${ehEsc(this._t('once_a_day'))}</td></tr></table>${s.notify ? '' : this._snip('energy_hub:\n  notify: notify.mobile_app_phone\n')}`);
+    o += this._box(this._t('notifications'), '', `<table class="roles"><tr><td>${ehEsc(this._t('notify_target'))}</td><td>${s.notify ? `<code>${ehEsc(s.notify)}</code>${s.notify_auto ? ` <span class="pill small">${ehEsc(this._t('detected'))}</span>` : ''}` : ehEsc(this._t('no_notify'))}</td></tr><tr><td>${ehEsc(this._t('event_name'))}</td><td><code>energy_hub_alert</code></td></tr><tr><td>${ehEsc(this._t('frequency'))}</td><td>${ehEsc(this._t('once_a_day'))}</td></tr></table>${s.notify ? '' : this._snip('energy_hub:\n  notify: notify.mobile_app_phone\n')}`);
     return o;
   }
 

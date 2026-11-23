@@ -118,3 +118,37 @@ async def test_badge_script_is_added(hass: HomeAssistant, stub_frontend) -> None
     await _setup_demo(hass)
     urls = [call.args[1] for call in stub_frontend.call_args_list]
     assert any("/energy_hub_static/energy-hub-badge.js?v=" in url for url in urls)
+
+
+async def test_alerts_go_to_notify_hub_in_the_user_language(hass: HomeAssistant) -> None:
+    from homeassistant.core import ServiceCall
+
+    entry = await _setup_demo(hass)
+    coordinator = entry.runtime_data
+    calls: list[ServiceCall] = []
+    hass.services.async_register("notify", "send_message", calls.append)
+    assert coordinator.notify_target is None
+    hass.states.async_set("notify.notify_hub", "unknown")
+    assert coordinator.notify_target == "notify.notify_hub"
+
+    hass.config.language = "fr"
+    text = await coordinator._async_alert_text({"kind": "clipping", "kwh": 2.3})
+    assert text == "Écrêtage de l'onduleur aujourd'hui : 2.3 kWh perdus."
+    hass.config.language = "pt-BR"
+    text = await coordinator._async_alert_text({"kind": "string_lagging", "name": "String 2", "relative": 0.84})
+    assert text == "String 2 produz 16 % menos do que os outros."
+
+    await coordinator._async_notify("notify.notify_hub", text)
+    await hass.async_block_till_done()
+    assert calls[0].data == {"entity_id": "notify.notify_hub", "title": "Energy Hub", "message": text}
+
+
+async def test_legacy_notify_action(hass: HomeAssistant) -> None:
+    from homeassistant.core import ServiceCall
+
+    entry = await _setup_demo(hass)
+    calls: list[ServiceCall] = []
+    hass.services.async_register("notify", "mobile_app_phone", calls.append)
+    await entry.runtime_data._async_notify("notify.mobile_app_phone", "hello")
+    await hass.async_block_till_done()
+    assert calls[0].data == {"title": "Energy Hub", "message": "hello"}

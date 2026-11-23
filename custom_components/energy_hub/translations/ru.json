@@ -66,5 +66,28 @@
         "name": "Оповещения"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Ограничение инвертора сегодня: потеряно {kwh} kWh."
+    },
+    "alert_string_lagging": {
+      "message": "{name} вырабатывает на {pct} % меньше остальных."
+    },
+    "alert_shading": {
+      "message": "Повторяющееся затенение {unit} с {start} до {end}."
+    },
+    "alert_soiling": {
+      "message": "Потери от загрязнения {loss} %: чистка может окупиться."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: ячейка {cell} достигнет порога разброса через {days} дн."
+    },
+    "alert_battery_exchange": {
+      "message": "Одна батарея заряжает другую ({kw} kW): энергия теряется на перекачке."
+    },
+    "alert_stale": {
+      "message": "Источник Energy Hub перестал обновляться: {entities}"
+    }
   }
 }

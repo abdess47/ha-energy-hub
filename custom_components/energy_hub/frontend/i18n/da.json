@@ -195,6 +195,7 @@
   "active": "aktiv",
   "active_n": "{n} aktive",
   "no_notify": "ingen",
+  "detected": "fundet",
   "inactive": "inaktiv",
   "after_years": "efter {v} år",
   "alert_rules": "Advarselsregler",

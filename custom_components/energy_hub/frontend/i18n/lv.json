@@ -195,6 +195,7 @@
   "active": "aktīvs",
   "active_n": "Aktīvi: {n}",
   "no_notify": "nav",
+  "detected": "atrasta",
   "inactive": "neaktīvs",
   "after_years": "pēc {v} gadiem",
   "alert_rules": "Brīdinājumu noteikumi",

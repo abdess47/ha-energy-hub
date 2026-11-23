@@ -66,5 +66,28 @@
         "name": "Brīdinājumi"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Invertora ierobežošana šodien: zaudētas {kwh} kWh."
+    },
+    "alert_string_lagging": {
+      "message": "{name} saražo par {pct} % mazāk nekā pārējie."
+    },
+    "alert_shading": {
+      "message": "Atkārtots noēnojums {unit} no {start} līdz {end}."
+    },
+    "alert_soiling": {
+      "message": "Zudumi netīrumu dēļ {loss} %: tīrīšana var atmaksāties."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: šūna {cell} sasniegs izkliedes slieksni pēc {days} dienām."
+    },
+    "alert_battery_exchange": {
+      "message": "Viens akumulators uzlādē otru ({kw} kW): enerģija zūd riņķojot."
+    },
+    "alert_stale": {
+      "message": "Energy Hub avots vairs netiek atjaunināts: {entities}"
+    }
   }
 }

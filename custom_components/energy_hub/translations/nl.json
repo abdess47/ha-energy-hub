@@ -66,5 +66,28 @@
         "name": "Meldingen"
       }
     }
+  },
+  "exceptions": {
+    "alert_clipping": {
+      "message": "Clipping van de omvormer vandaag: {kwh} kWh verloren."
+    },
+    "alert_string_lagging": {
+      "message": "{name} produceert {pct} % minder dan de andere."
+    },
+    "alert_shading": {
+      "message": "Terugkerende schaduw {unit} van {start} tot {end}."
+    },
+    "alert_soiling": {
+      "message": "Verlies door vervuiling {loss} %: reinigen kan lonen."
+    },
+    "alert_cell_drift": {
+      "message": "{battery}: cel {cell} bereikt de spreidingsgrens over {days} dagen."
+    },
+    "alert_battery_exchange": {
+      "message": "De ene batterij laadt de andere ({kw} kW): energie gaat verloren heen en terug."
+    },
+    "alert_stale": {
+      "message": "Een bron van Energy Hub werkt niet meer bij: {entities}"
+    }
   }
 }
