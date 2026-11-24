@@ -75,9 +75,11 @@ Energy Hub works on top of the integrations below. Each one has a detection prof
 | <img src="https://raw.githubusercontent.com/juju35/ha-energy-hub/main/images/zendure.png" alt="" width="16"> [Zendure](https://github.com/Zendure/Zendure-HA) | ✓ | ✓ | ✓ | state of health, battery packs |
 | <img src="https://raw.githubusercontent.com/juju35/ha-energy-hub/main/images/marstek.png" alt="" width="16"> [Marstek Local API](https://github.com/jaapp/ha-marstek-local-api) | | ✓ | ✓ | |
 | <img src="https://raw.githubusercontent.com/juju35/ha-energy-hub/main/images/beem.png" alt="" width="16"> [Beem Energy](https://github.com/CharlesP44/Beem_Energy) | ✓ | | ✓ | |
+| [Indevolt](https://github.com/INDEVOLT/homeassistant-indevolt) (BK1600, PG2000…) | ✓ | ✓ | ✓ | solar battery, grid meter |
 | <img src="https://raw.githubusercontent.com/juju35/ha-energy-hub/main/images/bms_ble.png" alt="" width="16"> [BLE Battery Management](https://github.com/patman15/BMS_BLE-HA) (JK, JBD, Daly…) | | | ✓ | **cells**, cycles |
 | <img src="https://raw.githubusercontent.com/juju35/ha-energy-hub/main/images/zha.png" alt="" width="16"> [ZLinky](https://www.home-assistant.io/integrations/zha) (ZHA) | | ✓ | | Linky meter |
 | <img src="https://raw.githubusercontent.com/juju35/ha-energy-hub/main/images/teleinfo.png" alt="" width="16"> [Teleinfo](https://www.home-assistant.io/integrations/teleinfo) | | ✓ | | Linky meter |
+| [Denky D4](https://github.com/hallard/Denky-D4) (Tasmota) | | ✓ | | Linky meter |
 | <img src="https://raw.githubusercontent.com/juju35/ha-energy-hub/main/images/forecast_solar.png" alt="" width="16"> [Forecast.Solar](https://www.home-assistant.io/integrations/forecast_solar) | forecast | | | |
 | <img src="https://raw.githubusercontent.com/juju35/ha-energy-hub/main/images/solcast_solar.png" alt="" width="16"> [Solcast PV Forecast](https://github.com/BJReplay/ha-solcast-solar) | forecast | | | |
 | <img src="https://raw.githubusercontent.com/juju35/ha-energy-hub/main/images/tarif_edf.png" alt="" width="16"> [Tarif EDF](https://github.com/delphiki/hass-tarif-edf) | | tariff | | contract, power, price now, Tempo colour |

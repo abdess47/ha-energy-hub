@@ -1,0 +1,28 @@
+name: Indevolt
+platform: indevolt
+status: beta
+url: https://github.com/INDEVOLT/homeassistant-indevolt
+# Solar battery + meter gateway (GEN1: BK1600 / BK2500, GEN2: PG2000 series).
+# Entity ids follow the sensor names of the integration:
+#   GEN1 -> dc_input_power1, GEN2 -> dc_input_power_1 (with a space in the name).
+# Battery packs (Battery SOC-Pack1, Battery Temp-Pack1, ...) live on their own
+# devices and are deliberately excluded: only the master SOC is matched.
+roles:
+  pv_power: ['total_dc_output_power$', 'dc_input_power_?1$']
+  pv_energy: ['cumulative_production$']
+  load_power: ['total_ac_output_power$']
+  grid_power: ['meter_power$']
+battery:
+  soc: ['battery_soc_total$', 'battery_soc_mb$', 'battery_soc$']
+  power: ['battery_power$']
+  temperature: ['battery_temp_mb$', 'battery_temp$']
+  charge_energy: ['battery_total_charging_energy$']
+  discharge_energy: ['battery_total_discharging_energy$']
+  capacity: ['rated_capacity$']
+signs:
+  grid_power: import_positive
+capabilities:
+  soc: provided
+  soh: absent
+  cycles: absent
+  cells: absent

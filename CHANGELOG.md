@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.0 - 2026-11-24
+
+### Features
+- Profile: Indevolt solar batteries (`indevolt`, GEN1 BK1600/BK2500 and GEN2 PG2000) — PV power and total production, AC output as the home load, meter power, state of charge, battery power, temperature, rated capacity and total charge / discharge energy; the battery packs (SFA/PFA) stay out of the battery list.
+- Profile: Denky D4 read as a Linky meter (`denky_d4`, Tasmota Teleinfo driver) — grid power, imported and exported energy from the TIC items and the ENERGY totals.
+
 ## 1.5.0 - 2026-11-24
 
 ### Features
