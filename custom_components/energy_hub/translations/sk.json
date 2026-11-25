@@ -24,6 +24,23 @@
           "demo": "Režim demo (simulovaná inštalácia)",
           "show_panel": "Zobraziť panel na bočnom paneli"
         }
+      },
+      "entities": {
+        "title": "Entity pre rolu",
+        "description": "Vyberte entitu pre každú rolu. Prázdne pole ponechá automatickú detekciu. Možno zadať viac entít: solárne roly sa sčítavajú, ostatné použijú prvú, ktorá odpovie – tak sa deklaruje alternatívny zdroj.",
+        "data": {
+          "pv_power": "Výkon FVE (viac sa sčíta)",
+          "pv_energy": "Energia FVE",
+          "grid_power": "Výkon siete (odber +, dodávka -)",
+          "grid_import_energy": "Odobraná energia",
+          "grid_export_energy": "Dodaná energia",
+          "load_power": "Spotreba domu",
+          "forecast_power": "Predpokladaný výkon FVE",
+          "forecast_energy_today": "Predpoveď FVE na dnes",
+          "irradiance": "Ožiarenie",
+          "tariff_price": "Cena energie",
+          "tariff_color": "Farba tarify"
+        }
       }
     }
   },

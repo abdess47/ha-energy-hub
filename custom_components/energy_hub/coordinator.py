@@ -19,11 +19,11 @@ from homeassistant.util import dt as dt_util
 from . import demo
 from .analytics.clearsky import CONDITION_CLOUDS, Plane, clearsky_power, cloud_factor, measured_factor
 from .analytics.tariffs import normalize_color
-from .config import HubConfig
+from .config import MULTI_ROLES, ROLES, HubConfig
 from .const import DOMAIN, EVENT_ALERT, NOTIFY_HUB, STALE_SECONDS, STORAGE_KEY, STORAGE_VERSION, UPDATE_SECONDS
 from .engine import build_snapshot, estimate_kwp
 from .history import BatteryReading, History, Reading
-from .sources import Installation, discover, load_profiles
+from .sources import Installation, discover, load_profiles, role_entities
 from .views import contract_offer
 
 _LOGGER = logging.getLogger(__name__)
@@ -139,8 +139,22 @@ class EnergyHubCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         snapshot = await self.hass.async_add_executor_job(
             build_snapshot, self.history, self.installation, self.cfg, reading, now, ages, self.demo
         )
+        snapshot["entities"] = self._entities_payload()
         await self._async_alerts(snapshot)
         return snapshot
+
+    def _entities_payload(self) -> dict[str, Any]:
+        """What the Settings tab needs to edit the roles: chosen entities, alternatives, and the candidates."""
+        inst = self.installation
+        return {
+            "roles": {role: role_entities(inst, role) for role in ROLES if inst.roles.get(role)},
+            "all": list(ROLES),
+            "multi": list(MULTI_ROLES),
+            "detected": sorted(role for role in ROLES if inst.roles.get(role) and role not in self.cfg.entities),
+            "configured": self.cfg.entities,
+            "excluded": inst.excluded,
+            "signs": inst.signs,
+        }
 
     # ---- reading the states
     def _read(self, now) -> tuple[Reading, dict[str, float]]:
@@ -158,12 +172,21 @@ class EnergyHubCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ages[entity_id] = round(age.total_seconds())
 
         def role_kw(role: str) -> float | None:
-            entity_id = inst.roles.get(role)
-            return power_kw(get(entity_id)) if entity_id else None
+            """The first entity of the role that answers: that is the alternative-source fallback."""
+            for entity_id in role_entities(inst, role):
+                value = power_kw(get(entity_id))
+                if value is not None:
+                    return value
+            return None
+
+        def role_sum_kw(role: str) -> float | None:
+            """Every entity of the role added up: two PV arrays, two inverters."""
+            values = [v for v in (power_kw(get(e)) for e in role_entities(inst, role)) if v is not None]
+            return round(sum(values), 4) if values else None
 
         units = self._units(inst.units)
         strings = self._units(inst.strings)
-        pv = role_kw("pv_power")
+        pv = role_sum_kw("pv_power")
         if pv is None and (strings or units):
             pv = sum((strings or units).values())
         grid = role_kw("grid_power")

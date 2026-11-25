@@ -24,6 +24,23 @@
           "demo": "Modo demo (instalação simulada)",
           "show_panel": "Mostrar o painel na barra lateral"
         }
+      },
+      "entities": {
+        "title": "Entidades por função",
+        "description": "Escolha a entidade de cada função. Um campo vazio mantém a deteção automática. Várias entidades são aceites: as funções solares somam-se e as restantes usam a primeira que responde, é assim que se declara uma fonte alternativa.",
+        "data": {
+          "pv_power": "Potência solar (várias são somadas)",
+          "pv_energy": "Energia solar",
+          "grid_power": "Potência da rede (consumo +, injeção -)",
+          "grid_import_energy": "Energia importada",
+          "grid_export_energy": "Energia injetada",
+          "load_power": "Consumo da casa",
+          "forecast_power": "Potência solar prevista",
+          "forecast_energy_today": "Previsão solar de hoje",
+          "irradiance": "Irradiância",
+          "tariff_price": "Preço da energia",
+          "tariff_color": "Cor da tarifa"
+        }
       }
     }
   },

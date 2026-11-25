@@ -415,5 +415,13 @@
     "forecast": "z integrace předpovědi",
     "weather": "jasná obloha × (1 − 0,75 N^3,4), N oblačnost",
     "clearsky": "nenalezen snímač ozáření, předpověď ani entita počasí"
-  }
+  },
+  "entities": "Entity",
+  "entities_hint": "Vyberte entitu pro každou roli. Prázdné pole ponechá automatickou detekci.",
+  "entities_multi": "sčítají se",
+  "entities_one": "odpovídá první",
+  "entities_format": "Několik entit oddělených čárkou. Solární role se sčítají, u ostatních vyhrává první, která odpoví – tak se deklaruje alternativní zdroj.",
+  "entities_save": "Uložit",
+  "entities_saved": "Uloženo",
+  "entities_failed": "Selhalo"
 }

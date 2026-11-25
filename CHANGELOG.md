@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.7.0 - 2026-11-25
+
+### Features
+- Settings: choose the entity behind every role (solar power and energy, grid power and import / export, home load, forecast, irradiance, tariff price and colour) from the options flow or the panel's Settings tab — an empty field keeps the automatic detection, and the choice wins over the YAML block.
+- Alternative data source: a role accepts several entities. The solar roles add them up (several arrays, FusionSolar and Indevolt for instance); for the other roles the first entity that answers wins, so a Zigbee / Linky module can stand in for the inverter's meter.
+- Panel: a "Entities" box on top of the Sources tab, one row per role, the detected entity as placeholder and a Save button talking to the admin websocket `energy_hub/set_entities`.
+- Snapshot: the roles payload now lists every role (`all`), the entities chosen in the options (`configured`) and the detected ones (`detected`).
+- Translations: the new options step and the panel keys in all 21 languages.
+
 ## 1.6.0 - 2026-11-24
 
 ### Features

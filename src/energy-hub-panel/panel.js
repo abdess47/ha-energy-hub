@@ -983,7 +983,7 @@ export class EnergyHubPanel extends HTMLElement {
 
   _setSources() {
     const d = this._data;
-    let o = '';
+    let o = this._entitiesBox();
     const sugg = d.suggestions || [];
     if (sugg.length) {
       o += this._box(this._t('suggestions'), `${sugg.length}`, sugg.map((s) => `<div class="sugg"><span class="pa sm" style="background:#EEEDFE;color:#3C3489">${ehIcon('lightbulb-on-outline', 14)}</span><div class="tt"><div class="a1">${ehEsc(this._t(`suggest.${s.kind}`, { bms: s.bms || '', battery: s.battery || '' }))}</div><div class="t3">${s.correlation != null ? ehEsc(this._t('correlation', { v: this._num(s.correlation, 2) })) : ''}</div></div>${this._snip(s.yaml)}</div>`).join(''));
@@ -1005,6 +1005,24 @@ export class EnergyHubPanel extends HTMLElement {
     const excl = Object.entries(d.excluded || {}).map(([e, why]) => `<tr><td>${ehEsc(this._t('excluded'))}</td><td><code class="muted">${ehEsc(e)}</code></td><td class="age">${ehEsc(this._t(`excluded_reason.${why}`))}</td></tr>`).join('');
     if (excl) o += this._box(this._t('excluded'), '', `<table class="roles">${excl}</table>`);
     return o;
+  }
+
+  _entitiesBox() {
+    const e = this._data.entities || {};
+    const roles = e.all && e.all.length ? e.all : Object.keys(e.roles || {});
+    if (!roles.length) return '';
+    const chosen = e.configured || {};
+    const detected = e.roles || {};
+    const rows = roles
+      .map((role) => {
+        const cur = chosen[role] || [];
+        const auto = detected[role] || [];
+        const many = (e.multi || []).includes(role);
+        return `<div class="entrow"><label class="a1">${ehEsc(this._roleLabel(role))}</label><input class="entin" data-erole="${ehEsc(role)}" value="${ehEsc(cur.join(', '))}" placeholder="${ehEsc(auto.join(', '))}" spellcheck="false" autocomplete="off"><span class="t3">${ehEsc(this._t(many ? 'entities_multi' : 'entities_one'))}</span></div>`;
+      })
+      .join('');
+    const bar = `<div class="entbar"><button class="copy" data-action="save-entities">${ehIcon('check', 14)} ${ehEsc(this._t('entities_save'))}</button><span class="hint">${ehEsc(this._t('entities_format'))}</span></div>`;
+    return this._box(this._t('entities'), this._t('entities_hint'), rows + bar);
   }
 
   _quality() {
@@ -1273,6 +1291,26 @@ export class EnergyHubPanel extends HTMLElement {
         this._render();
       } catch (_err) {
         // kept as is
+      }
+    });
+    root.querySelector('[data-action="save-entities"]')?.addEventListener('click', async (ev) => {
+      const btn = ev.currentTarget;
+      const roles = {};
+      for (const el of root.querySelectorAll('[data-erole]')) {
+        roles[el.dataset.erole] = el.value
+          .split(/[\s,]+/)
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+      btn.disabled = true;
+      try {
+        await this._hass.callWS({ type: 'energy_hub/set_entities', roles });
+        btn.textContent = this._t('entities_saved');
+        this._data = await this._hass.callWS({ type: 'energy_hub/snapshot' });
+        setTimeout(() => this._render(), 1200);
+      } catch (_err) {
+        btn.textContent = this._t('entities_failed');
+        btn.disabled = false;
       }
     });
     root.querySelector('[data-action="menu"]')?.addEventListener('click', () => this.dispatchEvent(new Event('hass-toggle-menu', { bubbles: true, composed: true })));

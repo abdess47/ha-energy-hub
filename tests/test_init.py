@@ -9,7 +9,7 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.energy_hub.const import DOMAIN, PANEL_URL_PATH
+from custom_components.energy_hub.const import CONF_ENTITIES, DOMAIN, PANEL_URL_PATH
 from custom_components.energy_hub.diagnostics import async_get_config_entry_diagnostics
 
 DEMO_YAML = {
@@ -66,6 +66,34 @@ async def test_websocket_snapshot_subscribe_and_settings(hass: HomeAssistant, ha
     assert "inverter_max_kw: 4.2" in settings["yaml"]
 
 
+async def test_entities_can_be_chosen_in_the_options(hass: HomeAssistant) -> None:
+    entry = await _setup_demo(hass)
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"demo": True, "show_panel": True})
+    assert result["step_id"] == "entities"
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"grid_power": ["sensor.solaire_zigbee_power"], "pv_power": ["sensor.pv_a", "sensor.pv_b"]},
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_ENTITIES] == {
+        "grid_power": ["sensor.solaire_zigbee_power"],
+        "pv_power": ["sensor.pv_a", "sensor.pv_b"],
+    }
+
+
+async def test_websocket_set_entities_saves_the_substitution(hass: HomeAssistant, hass_ws_client) -> None:
+    entry = await _setup_demo(hass)
+    client = await hass_ws_client(hass)
+    await client.send_json_auto_id(
+        {"type": "energy_hub/set_entities", "roles": {"grid_power": "sensor.solaire_zigbee_power", "pv_power": None}}
+    )
+    assert (await client.receive_json())["success"] is True
+    await hass.async_block_till_done()
+    options = hass.config_entries.async_get_entry(entry.entry_id).options
+    assert options[CONF_ENTITIES] == {"grid_power": ["sensor.solaire_zigbee_power"]}
+
+
 async def test_websocket_errors_when_not_loaded(hass: HomeAssistant, hass_ws_client) -> None:
     assert await async_setup_component(hass, DOMAIN, {})
     client = await hass_ws_client(hass)
@@ -100,6 +128,8 @@ async def test_options_hide_the_panel(hass: HomeAssistant) -> None:
     result = await hass.config_entries.options.async_init(entry.entry_id)
     assert result["type"] is FlowResultType.FORM
     result = await hass.config_entries.options.async_configure(result["flow_id"], {"demo": True, "show_panel": False})
+    assert result["step_id"] == "entities"
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {})
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
     assert PANEL_URL_PATH not in hass.data[frontend.DATA_PANELS]

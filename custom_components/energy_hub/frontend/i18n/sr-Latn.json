@@ -415,5 +415,13 @@
     "forecast": "iz integracije prognoze",
     "weather": "vedro nebo × (1 − 0,75 N^3,4), N oblačnost",
     "clearsky": "nije pronađen senzor zračenja, prognoza ni entitet vremena"
-  }
+  },
+  "entities": "Entiteti",
+  "entities_hint": "Izaberite entitet za svaku ulogu. Prazno polje zadržava automatsko prepoznavanje.",
+  "entities_multi": "sabiraju se",
+  "entities_one": "prvi odgovara",
+  "entities_format": "Više entiteta odvojenih zapetom. Solarne uloge se sabiraju, kod ostalih pobeđuje prvi koji odgovori — tako se zadaje alternativni izvor.",
+  "entities_save": "Sačuvaj",
+  "entities_saved": "Sačuvano",
+  "entities_failed": "Greška"
 }

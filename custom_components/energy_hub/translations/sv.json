@@ -24,6 +24,23 @@
           "demo": "Demoläge (simulerad anläggning)",
           "show_panel": "Visa panelen i sidofältet"
         }
+      },
+      "entities": {
+        "title": "Entiteter per roll",
+        "description": "Välj entiteten bakom varje roll. Ett tomt fält behåller den automatiska identifieringen. Flera entiteter tillåts: solrollerna summeras, de övriga använder den första som svarar – så anger du en alternativ källa.",
+        "data": {
+          "pv_power": "Solproduktion (flera summeras)",
+          "pv_energy": "Solenergi",
+          "grid_power": "Näteffekt (köp +, försäljning -)",
+          "grid_import_energy": "Köpt energi",
+          "grid_export_energy": "Såld energi",
+          "load_power": "Husets förbrukning",
+          "forecast_power": "Prognostiserad solproduktion",
+          "forecast_energy_today": "Solprognos idag",
+          "irradiance": "Instrålning",
+          "tariff_price": "Energipris",
+          "tariff_color": "Tariffärg"
+        }
       }
     }
   },

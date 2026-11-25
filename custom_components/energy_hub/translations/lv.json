@@ -24,6 +24,23 @@
           "demo": "Demo režīms (simulēta iekārta)",
           "show_panel": "Rādīt paneli sānjoslā"
         }
+      },
+      "entities": {
+        "title": "Entītijas pa lomām",
+        "description": "Izvēlieties entītiju katrai lomai. Tukšs lauks saglabā automātisko noteikšanu. Atļautas vairākas entītijas: saules lomas summējas, pārējās izmanto pirmo, kas atbild – tā norāda alternatīvu avotu.",
+        "data": {
+          "pv_power": "Saules jauda (vairākas summējas)",
+          "pv_energy": "Saules enerģija",
+          "grid_power": "Tīkla jauda (patēriņš +, atdeve -)",
+          "grid_import_energy": "Patērētā enerģija",
+          "grid_export_energy": "Atdotā enerģija",
+          "load_power": "Mājas patēriņš",
+          "forecast_power": "Prognozētā saules jauda",
+          "forecast_energy_today": "Šodienas saules prognoze",
+          "irradiance": "Apspīdējums",
+          "tariff_price": "Enerģijas cena",
+          "tariff_color": "Tarifa krāsa"
+        }
       }
     }
   },

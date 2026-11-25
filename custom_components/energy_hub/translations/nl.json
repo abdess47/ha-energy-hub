@@ -24,6 +24,23 @@
           "demo": "Demomodus (gesimuleerde installatie)",
           "show_panel": "Paneel in de zijbalk tonen"
         }
+      },
+      "entities": {
+        "title": "Entiteiten per rol",
+        "description": "Kies de entiteit achter elke rol. Een leeg veld houdt de automatische detectie. Meerdere entiteiten mogen: solarrollen worden opgeteld, bij de andere telt de eerste die antwoordt – zo geeft u een alternatieve bron op.",
+        "data": {
+          "pv_power": "PV-vermogen (meerdere worden opgeteld)",
+          "pv_energy": "PV-energie",
+          "grid_power": "Netvermogen (afname +, teruglevering -)",
+          "grid_import_energy": "Afgenomen energie",
+          "grid_export_energy": "Teruggeleverde energie",
+          "load_power": "Huisverbruik",
+          "forecast_power": "Verwacht PV-vermogen",
+          "forecast_energy_today": "PV-verwachting vandaag",
+          "irradiance": "Zoninstraling",
+          "tariff_price": "Energieprijs",
+          "tariff_color": "Tariefkleur"
+        }
       }
     }
   },

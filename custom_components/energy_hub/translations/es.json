@@ -24,6 +24,23 @@
           "demo": "Modo demo (instalación simulada)",
           "show_panel": "Mostrar el panel en la barra lateral"
         }
+      },
+      "entities": {
+        "title": "Entidades por rol",
+        "description": "Elija la entidad de cada rol. Un campo vacío mantiene la detección automática. Se admiten varias entidades: los roles solares se suman y los demás usan la primera que responde, así se declara una fuente alternativa.",
+        "data": {
+          "pv_power": "Potencia solar (varias se suman)",
+          "pv_energy": "Energía solar",
+          "grid_power": "Potencia de red (consumo +, vertido -)",
+          "grid_import_energy": "Energía importada",
+          "grid_export_energy": "Energía exportada",
+          "load_power": "Consumo de la casa",
+          "forecast_power": "Potencia solar prevista",
+          "forecast_energy_today": "Previsión solar de hoy",
+          "irradiance": "Irradiancia",
+          "tariff_price": "Precio de la energía",
+          "tariff_color": "Color de la tarifa"
+        }
       }
     }
   },

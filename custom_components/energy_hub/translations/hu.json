@@ -24,6 +24,23 @@
           "demo": "Demó mód (szimulált rendszer)",
           "show_panel": "Panel megjelenítése az oldalsávon"
         }
+      },
+      "entities": {
+        "title": "Entitások szerepenként",
+        "description": "Válassza ki az egyes szerepek entitását. Az üres mező megtartja az automatikus felismerést. Több entitás is megadható: a napló szerepek összeadódnak, a többi az első válaszolót használja – így ad meg alternatív forrást.",
+        "data": {
+          "pv_power": "Napló teljesítmény (több összeadva)",
+          "pv_energy": "Napló energia",
+          "grid_power": "Hálózati teljesítmény (vételezés +, visszatáplálás -)",
+          "grid_import_energy": "Vételezett energia",
+          "grid_export_energy": "Visszatáplált energia",
+          "load_power": "Háztartás fogyasztása",
+          "forecast_power": "Előrejelzett napló teljesítmény",
+          "forecast_energy_today": "Mai napló előrejelzés",
+          "irradiance": "Beszugárzás",
+          "tariff_price": "Energiaár",
+          "tariff_color": "Tarifa színe"
+        }
       }
     }
   },

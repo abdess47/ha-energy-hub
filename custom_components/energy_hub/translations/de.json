@@ -24,6 +24,23 @@
           "demo": "Demo-Modus (simulierte Anlage)",
           "show_panel": "Panel in der Seitenleiste anzeigen"
         }
+      },
+      "entities": {
+        "title": "Entitäten je Rolle",
+        "description": "Wählen Sie die Entität hinter jeder Rolle. Ein leeres Feld behält die automatische Erkennung. Mehrere Entitäten sind erlaubt: Solarrollen werden addiert, bei den anderen zählt die erste, die antwortet – so wird eine alternative Quelle angegeben.",
+        "data": {
+          "pv_power": "PV-Leistung (mehrere werden addiert)",
+          "pv_energy": "PV-Energie",
+          "grid_power": "Netzleistung (Bezug +, Einspeisung -)",
+          "grid_import_energy": "Netzbezug",
+          "grid_export_energy": "Netzeinspeisung",
+          "load_power": "Hausverbrauch",
+          "forecast_power": "Prognostizierte PV-Leistung",
+          "forecast_energy_today": "PV-Prognose heute",
+          "irradiance": "Einstrahlung",
+          "tariff_price": "Energiepreis",
+          "tariff_color": "Tariffarbe"
+        }
       }
     }
   },

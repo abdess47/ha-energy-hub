@@ -415,5 +415,13 @@
     "forecast": "aus der Prognose-Integration",
     "weather": "klarer Himmel × (1 − 0,75 N^3,4), N die Bewölkung",
     "clearsky": "kein Einstrahlungssensor, keine Prognose und keine Wetter-Entität gefunden"
-  }
+  },
+  "entities": "Entitäten",
+  "entities_hint": "Wählen Sie die Entität hinter jeder Rolle. Ein leeres Feld behält die automatische Erkennung.",
+  "entities_multi": "addiert",
+  "entities_one": "erste Antwort zählt",
+  "entities_format": "Mehrere Entitäten, durch Kommas getrennt. Solarrollen werden addiert; bei den anderen zählt die erste, die antwortet – so wird eine alternative Quelle angegeben.",
+  "entities_save": "Speichern",
+  "entities_saved": "Gespeichert",
+  "entities_failed": "Fehlgeschlagen"
 }

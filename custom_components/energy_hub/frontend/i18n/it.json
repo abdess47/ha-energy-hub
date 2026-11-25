@@ -415,5 +415,13 @@
     "forecast": "dall'integrazione di previsione",
     "weather": "cielo sereno × (1 − 0,75 N^3,4), N la copertura nuvolosa",
     "clearsky": "nessun sensore di irraggiamento, previsione o entità meteo trovati"
-  }
+  },
+  "entities": "Entità",
+  "entities_hint": "Scegli l'entità di ogni ruolo. Un campo vuoto mantiene il rilevamento automatico.",
+  "entities_multi": "sommate",
+  "entities_one": "risponde la prima",
+  "entities_format": "Più entità separate da virgole. I ruoli solari si sommano; negli altri vince la prima che risponde, così si dichiara una fonte alternativa.",
+  "entities_save": "Salva",
+  "entities_saved": "Salvato",
+  "entities_failed": "Errore"
 }

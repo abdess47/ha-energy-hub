@@ -24,6 +24,23 @@
           "demo": "Modalità demo (impianto simulato)",
           "show_panel": "Mostra il pannello nella barra laterale"
         }
+      },
+      "entities": {
+        "title": "Entità per ruolo",
+        "description": "Scegli l'entità di ogni ruolo. Un campo vuoto mantiene il rilevamento automatico. Sono ammesse più entità: i ruoli solari si sommano, gli altri usano la prima che risponde, così si dichiara una fonte alternativa.",
+        "data": {
+          "pv_power": "Potenza solare (più entità si sommano)",
+          "pv_energy": "Energia solare",
+          "grid_power": "Potenza rete (prelievo +, immissione -)",
+          "grid_import_energy": "Energia prelevata",
+          "grid_export_energy": "Energia immessa",
+          "load_power": "Consumo della casa",
+          "forecast_power": "Potenza solare prevista",
+          "forecast_energy_today": "Previsione solare di oggi",
+          "irradiance": "Irraggiamento",
+          "tariff_price": "Prezzo dell'energia",
+          "tariff_color": "Colore della tariffa"
+        }
       }
     }
   },

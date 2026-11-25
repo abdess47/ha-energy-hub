@@ -415,5 +415,13 @@
     "forecast": "från prognosintegrationen",
     "weather": "klar himmel × (1 − 0,75 N^3,4), N molnigheten",
     "clearsky": "ingen instrålningssensor, prognos eller väderentitet hittades"
-  }
+  },
+  "entities": "Entiteter",
+  "entities_hint": "Välj entiteten bakom varje roll. Ett tomt fält behåller den automatiska identifieringen.",
+  "entities_multi": "summeras",
+  "entities_one": "första svarar",
+  "entities_format": "Flera entiteter åtskilda av kommatecken. Solrollerna summeras; för de övriga vinner den första som svarar – så anger du en alternativ källa.",
+  "entities_save": "Spara",
+  "entities_saved": "Sparat",
+  "entities_failed": "Misslyckades"
 }

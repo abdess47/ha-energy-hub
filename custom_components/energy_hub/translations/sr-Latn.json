@@ -24,6 +24,23 @@
           "demo": "Demo režim (simulirana instalacija)",
           "show_panel": "Prikaži panel na bočnoj traci"
         }
+      },
+      "entities": {
+        "title": "Entiteti po ulogama",
+        "description": "Izaberite entitet za svaku ulogu. Prazno polje zadržava automatsko prepoznavanje. Dozvoljeno je više entiteta: solarne uloge se sabiraju, ostale koriste prvi koji odgovori — tako se zadaje alternativni izvor.",
+        "data": {
+          "pv_power": "Snaga solara (više se sabira)",
+          "pv_energy": "Energija solara",
+          "grid_power": "Snaga mreže (preuzimanje +, predaja -)",
+          "grid_import_energy": "Preuzeta energija",
+          "grid_export_energy": "Predata energija",
+          "load_power": "Potrošnja kuće",
+          "forecast_power": "Prognozirana snaga solara",
+          "forecast_energy_today": "Današnja prognoza solara",
+          "irradiance": "Ozračenost",
+          "tariff_price": "Cena energije",
+          "tariff_color": "Boja tarife"
+        }
       }
     }
   },

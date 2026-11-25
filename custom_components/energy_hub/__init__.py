@@ -15,12 +15,14 @@ from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntryState
 from homeassistant.const import Platform
 from homeassistant.core import HassJob, HomeAssistant, callback
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.typing import ConfigType
 
-from .config import YAML_SCHEMA, parse
+from .config import ROLES, YAML_SCHEMA, entity_ids, parse
 from .const import (
     BADGE_FILENAME,
+    CONF_ENTITIES,
     CONF_SHOW_PANEL,
     DOMAIN,
     FRONTEND_URL,
@@ -31,6 +33,7 @@ from .const import (
     VERSION,
 )
 from .coordinator import EnergyHubConfigEntry, EnergyHubCoordinator
+from .sources import role_entities
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,6 +53,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     websocket_api.async_register_command(hass, ws_snapshot)
     websocket_api.async_register_command(hass, ws_subscribe)
     websocket_api.async_register_command(hass, ws_settings)
+    websocket_api.async_register_command(hass, ws_set_entities)
     if DOMAIN in config:
         # Kept unvalidated: config.parse validates it again with the entry's options.
         hass.data[DATA_YAML] = dict(config[DOMAIN])
@@ -181,6 +185,31 @@ def ws_settings(hass: HomeAssistant, connection: websocket_api.ActiveConnection,
     )
 
 
+@websocket_api.require_admin
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "energy_hub/set_entities",
+        vol.Required("roles"): {vol.In(ROLES): vol.Any(None, cv.entity_id, [cv.entity_id])},
+    }
+)
+@websocket_api.async_response
+async def ws_set_entities(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """Save the entities chosen for each role in the entry's options; the integration reloads."""
+    entries = _loaded_entries(hass)
+    if not entries:
+        connection.send_error(msg["id"], "not_loaded", "Energy Hub is not loaded")
+        return
+    entry = entries[0]
+    chosen = {role: ids for role, value in msg["roles"].items() if (ids := entity_ids(value))}
+    options = dict(entry.options)
+    if chosen:
+        options[CONF_ENTITIES] = chosen
+    else:
+        options.pop(CONF_ENTITIES, None)
+    hass.config_entries.async_update_entry(entry, options=options)
+    connection.send_result(msg["id"], {"roles": chosen})
+
+
 def settings_payload(
     cfg, inst, *, yaml_configured: bool, show_panel: bool, notify: str | None = None
 ) -> dict[str, Any]:
@@ -225,10 +254,12 @@ def settings_yaml(cfg, inst) -> str:
         lines.append(f"  inverter_max_kw: {cfg.inverter_max_kw:g}")
     if cfg.export_limit_kw:
         lines.append(f"  export_limit_kw: {cfg.export_limit_kw:g}")
-    roles = {k: v for k, v in inst.roles.items() if not k.startswith("forecast") and k != "weather"}
+    roles = {k: role_entities(inst, k) for k in inst.roles if not k.startswith("forecast") and k != "weather"}
     if roles:
         lines.append("  entities:")
-        lines += [f"    {role}: {entity_id}" for role, entity_id in sorted(roles.items())]
+        for role, ids in sorted(roles.items()):
+            value = ids[0] if len(ids) == 1 else "[" + ", ".join(ids) + "]"
+            lines.append(f"    {role}: {value}")
     if inst.batteries:
         lines.append("  batteries:")
         for b in inst.batteries:

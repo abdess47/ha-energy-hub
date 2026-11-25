@@ -415,5 +415,13 @@
     "forecast": "az előrejelző integrációból",
     "weather": "derült égbolt × (1 − 0,75 N^3,4), N a felhőzet",
     "clearsky": "nem található besugárzásmérő, előrejelzés vagy időjárás-entitás"
-  }
+  },
+  "entities": "Entitások",
+  "entities_hint": "Válassza ki az egyes szerepek entitását. Az üres mező megtartja az automatikus felismerést.",
+  "entities_multi": "összeadva",
+  "entities_one": "az első válaszol",
+  "entities_format": "Több entitás vesszővel elválasztva. A napló szerepek összeadódnak, a többinél az első válaszoló nyer – így ad meg alternatív forrást.",
+  "entities_save": "Mentés",
+  "entities_saved": "Mentve",
+  "entities_failed": "Sikertelen"
 }
