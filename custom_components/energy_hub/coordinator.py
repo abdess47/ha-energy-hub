@@ -19,11 +19,20 @@ from homeassistant.util import dt as dt_util
 from . import demo
 from .analytics.clearsky import CONDITION_CLOUDS, Plane, clearsky_power, cloud_factor, measured_factor
 from .analytics.tariffs import normalize_color
-from .config import HubConfig
-from .const import DOMAIN, EVENT_ALERT, NOTIFY_HUB, STALE_SECONDS, STORAGE_KEY, STORAGE_VERSION, UPDATE_SECONDS
+from .config import MULTI_ROLES, HubConfig
+from .const import (
+    CONF_ENTITIES,
+    DOMAIN,
+    EVENT_ALERT,
+    NOTIFY_HUB,
+    STALE_SECONDS,
+    STORAGE_KEY,
+    STORAGE_VERSION,
+    UPDATE_SECONDS,
+)
 from .engine import build_snapshot, estimate_kwp
 from .history import BatteryReading, History, Reading
-from .sources import Installation, discover, load_profiles
+from .sources import Installation, discover, load_profiles, role_entities
 from .views import contract_offer
 
 _LOGGER = logging.getLogger(__name__)
@@ -139,8 +148,14 @@ class EnergyHubCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         snapshot = await self.hass.async_add_executor_job(
             build_snapshot, self.history, self.installation, self.cfg, reading, now, ages, self.demo
         )
+        snapshot["entities"]["configured"] = self._configured_entities()
         await self._async_alerts(snapshot)
         return snapshot
+
+    def _configured_entities(self) -> dict[str, list[str]]:
+        """The entities chosen in the options, for the Settings form. Only those: the YAML entities stay in
+        configuration.yaml, so saving the form never copies them into the options (where they would win)."""
+        return dict(self.config_entry.options.get(CONF_ENTITIES) or {})
 
     # ---- reading the states
     def _read(self, now) -> tuple[Reading, dict[str, float]]:
@@ -158,12 +173,21 @@ class EnergyHubCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ages[entity_id] = round(age.total_seconds())
 
         def role_kw(role: str) -> float | None:
-            entity_id = inst.roles.get(role)
-            return power_kw(get(entity_id)) if entity_id else None
+            """The first entity of the role that answers: that is the alternative-source fallback."""
+            for entity_id in role_entities(inst, role):
+                value = power_kw(get(entity_id))
+                if value is not None:
+                    return value
+            return None
+
+        def role_sum_kw(role: str) -> float | None:
+            """Every entity of the role added up: two PV arrays, two inverters."""
+            values = [v for v in (power_kw(get(e)) for e in role_entities(inst, role)) if v is not None]
+            return round(sum(values), 4) if values else None
 
         units = self._units(inst.units)
         strings = self._units(inst.strings)
-        pv = role_kw("pv_power")
+        pv = role_sum_kw("pv_power")
         if pv is None and (strings or units):
             pv = sum((strings or units).values())
         grid = role_kw("grid_power")
@@ -212,12 +236,17 @@ class EnergyHubCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             load = max(pv + grid - batt, 0.0)
         clear = self._clearsky(now)
         expected, reference = self._expected(now, clear, role_kw("forecast_power"))
-        color = normalize_color(st.state) if (st := get(inst.roles.get("tariff_color") or "")) else None
-        offline = any(
-            entity_id in stale and ages.get(entity_id, 0) > STALE_SECONDS
-            for entity_id in (inst.roles.get("pv_power"), inst.roles.get("grid_power"))
-            if entity_id
-        )
+        color = normalize_color(st.state) if (st := self._role_state("tariff_color")) else None
+
+        def role_offline(role: str) -> bool:
+            """Stale for too long: any entity of an added-up role (the sum is incomplete), every entity otherwise
+            (a fallback that still answers keeps the role online)."""
+            down = [e in stale and ages.get(e, 0) > STALE_SECONDS for e in role_entities(inst, role)]
+            if not down:
+                return False
+            return any(down) if role in MULTI_ROLES else all(down)
+
+        offline = role_offline("pv_power") or role_offline("grid_power")
         return (
             Reading(
                 t=now.timestamp(),
@@ -246,7 +275,7 @@ class EnergyHubCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         get = self.hass.states.get
         inst = self.installation
         lat, lon = self.hass.config.latitude, self.hass.config.longitude
-        if clear is not None and (ghi := _number(get(inst.roles.get("irradiance") or ""))) is not None:
+        if clear is not None and (ghi := _number(self._role_state("irradiance"))) is not None:
             factor = measured_factor(ghi, now, lat, lon)
             return (clear * factor if factor is not None else clear), "measured"
         if forecast is not None:
@@ -260,7 +289,7 @@ class EnergyHubCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def _price(self, now, color: str | None) -> float:
         """Price of the kWh drawn now: the price entity (Tarif EDF), else the contract's grid, else the flat price."""
-        if (price := _number(self.hass.states.get(self.installation.roles.get("tariff_price") or ""))) is not None:
+        if (price := _number(self._role_state("tariff_price"))) is not None:
             return price
         if offer := contract_offer(self.cfg, self.installation):
             # The colour entity shows the colour in force: before 6:00, the Tempo day that started yesterday.
@@ -268,6 +297,14 @@ class EnergyHubCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             colors = {d.isoformat(): color for d in days} if color else {}
             return offer.slot_price(now.date(), now.hour * 60 + now.minute, colors)
         return self.cfg.import_price
+
+    def _role_state(self, role: str) -> State | None:
+        """The state of the first entity of the role that answers (the alternative-source fallback)."""
+        for entity_id in role_entities(self.installation, role):
+            state = self.hass.states.get(entity_id)
+            if state is not None and state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN, ""):
+                return state
+        return None
 
     def _units(self, units) -> dict[str, float]:
         get = self.hass.states.get

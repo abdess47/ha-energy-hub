@@ -104,6 +104,23 @@ PLANE_SCHEMA = vol.Schema(
     }
 )
 
+MULTI_ROLES = ("pv_power",)  # roles where every entity counts, instead of the first available one
+
+
+def entity_ids(value: str | list[str] | None) -> list[str]:
+    """A role's entities, always as a list: a single entity, or several added together."""
+    if not value:
+        return []
+    if isinstance(value, str):
+        return [value]
+    return [e for e in value if e]
+
+
+def _roles(values: dict[str, Any]) -> dict[str, list[str]]:
+    """Keep the roles that got an entity, all as lists."""
+    return {role: ids for role, value in values.items() if (ids := entity_ids(value))}
+
+
 BATTERY_SCHEMA = vol.Schema(
     {
         vol.Optional("name"): cv.string,
@@ -128,7 +145,7 @@ YAML_SCHEMA = vol.Schema(
         vol.Optional(CONF_PLANES, default=[]): [PLANE_SCHEMA],
         vol.Optional(CONF_INVERTER_MAX_KW): vol.All(vol.Coerce(float), vol.Range(min=0.1)),
         vol.Optional(CONF_EXPORT_LIMIT_KW): vol.All(vol.Coerce(float), vol.Range(min=0)),
-        vol.Optional(CONF_ENTITIES, default={}): {vol.In(ROLES): cv.entity_id},
+        vol.Optional(CONF_ENTITIES, default={}): {vol.In(ROLES): vol.Any(cv.entity_id, [cv.entity_id])},
         vol.Optional(CONF_BATTERIES, default={}): {cv.slug: BATTERY_SCHEMA},
         vol.Optional(CONF_IGNORE, default=[]): [cv.entity_id],
         vol.Optional(CONF_FORECAST, default=[]): [cv.entity_id],
@@ -184,7 +201,8 @@ class HubConfig:
     planes: list[Plane] = field(default_factory=list)
     inverter_max_kw: float | None = None
     export_limit_kw: float | None = None
-    entities: dict[str, str] = field(default_factory=dict)
+    # One entity per role, or several: they add up for MULTI_ROLES, the first one answering wins otherwise.
+    entities: dict[str, list[str]] = field(default_factory=dict)
     batteries: list[BatteryConfig] = field(default_factory=list)
     ignore: set[str] = field(default_factory=set)
     forecast: list[str] = field(default_factory=list)
@@ -209,7 +227,11 @@ class HubConfig:
 
 
 def parse(raw: dict[str, Any] | None, options: dict[str, Any] | None = None) -> HubConfig:
-    """HubConfig from the YAML block (validated here) and the entry's options; YAML wins where both say something."""
+    """HubConfig from the YAML block (validated here) and the entry's options.
+
+    YAML wins where both say something, except the entities: those chosen in the options (the panel's
+    Settings tab or the options flow) are an explicit substitution and win over the YAML and the detection.
+    """
     options = options or {}
     data = YAML_SCHEMA(dict(raw or {}))
     tariff = data[CONF_TARIFF] or YAML_SCHEMA({})[CONF_TARIFF]
@@ -228,14 +250,17 @@ def parse(raw: dict[str, Any] | None, options: dict[str, Any] | None = None) -> 
         planes=[Plane(p[CONF_KWP], p[CONF_TILT], p[CONF_AZIMUTH]) for p in data[CONF_PLANES]],
         inverter_max_kw=data.get(CONF_INVERTER_MAX_KW),
         export_limit_kw=data.get(CONF_EXPORT_LIMIT_KW),
-        entities={
-            **{
-                role: tariff[key]
-                for role, key in (("tariff_price", "price"), ("tariff_color", "color"))
-                if tariff.get(key)
-            },
-            **data[CONF_ENTITIES],
-        },
+        entities=_roles(
+            {
+                **{
+                    role: tariff[key]
+                    for role, key in (("tariff_price", "price"), ("tariff_color", "color"))
+                    if tariff.get(key)
+                },
+                **data[CONF_ENTITIES],
+                **(options.get(CONF_ENTITIES) or {}),
+            }
+        ),
         batteries=[
             BatteryConfig(
                 key=key,

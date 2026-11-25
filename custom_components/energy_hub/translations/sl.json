@@ -24,6 +24,23 @@
           "demo": "Način demo (simulirana naprava)",
           "show_panel": "Prikaži ploščo v stranski vrstici"
         }
+      },
+      "entities": {
+        "title": "Entitete po vlogi",
+        "description": "Izberite entiteto za vsako vlogo. Prazno polje ohrani samodejno zaznavanje. Dovoljenih je več entitet: sončna moč se sešteva, druge uporabijo prvo, ki odgovori – tako določite nadomestni vir.",
+        "data": {
+          "pv_power": "Moč SE (več se jih sešteje)",
+          "pv_energy": "Energija SE",
+          "grid_power": "Moč omrežja (odjem +, oddaja -)",
+          "grid_import_energy": "Odvzeta energija",
+          "grid_export_energy": "Oddana energija",
+          "load_power": "Poraba hiše",
+          "forecast_power": "Napovedana moč SE",
+          "forecast_energy_today": "Napoved SE za danes",
+          "irradiance": "Obsevanje",
+          "tariff_price": "Cena energije",
+          "tariff_color": "Barva tarife"
+        }
       }
     }
   },

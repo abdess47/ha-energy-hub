@@ -24,6 +24,23 @@
           "demo": "Tryb demo (symulowana instalacja)",
           "show_panel": "Pokaż panel na pasku bocznym"
         }
+      },
+      "entities": {
+        "title": "Encje dla ról",
+        "description": "Wybierz encję dla każdej roli. Puste pole zachowuje automatyczne wykrywanie. Dozwolonych jest kilka encji: moc fotowoltaiczna jest sumowana, pozostałe biorą pierwszą, która odpowie – tak deklaruje się źródło alternatywne.",
+        "data": {
+          "pv_power": "Moc PV (kilka encji jest sumowanych)",
+          "pv_energy": "Energia PV",
+          "grid_power": "Moc sieci (pobór +, oddawanie -)",
+          "grid_import_energy": "Energia pobrana",
+          "grid_export_energy": "Energia oddana",
+          "load_power": "Zużycie domu",
+          "forecast_power": "Prognozowana moc PV",
+          "forecast_energy_today": "Prognoza PV na dziś",
+          "irradiance": "Nasłonecznienie",
+          "tariff_price": "Cena energii",
+          "tariff_color": "Kolor taryfy"
+        }
       }
     }
   },

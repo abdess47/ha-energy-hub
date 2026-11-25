@@ -24,6 +24,23 @@
           "demo": "Mod demo (instalație simulată)",
           "show_panel": "Afișează panoul în bara laterală"
         }
+      },
+      "entities": {
+        "title": "Entități pe rol",
+        "description": "Alegeți entitatea pentru fiecare rol. Un câmp gol păstrează detectarea automată. Sunt permise mai multe entități: puterea solară se însumează, celelalte o folosesc pe prima care răspunde — așa se declară o sursă alternativă.",
+        "data": {
+          "pv_power": "Putere solară (mai multe se însumează)",
+          "pv_energy": "Energie solară",
+          "grid_power": "Putere rețea (consum +, injectare -)",
+          "grid_import_energy": "Energie importată",
+          "grid_export_energy": "Energie injectată",
+          "load_power": "Consumul casei",
+          "forecast_power": "Putere solară prognozată",
+          "forecast_energy_today": "Prognoza solară de azi",
+          "irradiance": "Iradiere",
+          "tariff_price": "Prețul energiei",
+          "tariff_color": "Culoarea tarifului"
+        }
       }
     }
   },

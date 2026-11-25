@@ -127,6 +127,8 @@ class SourceInfo:
 @dataclass(slots=True)
 class Installation:
     roles: dict[str, str] = field(default_factory=dict)
+    # Extra entities for a role: added for MULTI_ROLES, used as a fallback when the first one is unavailable.
+    alternatives: dict[str, list[str]] = field(default_factory=dict)
     signs: dict[str, str] = field(default_factory=dict)
     strings: list[UnitSource] = field(default_factory=list)
     units: list[UnitSource] = field(default_factory=list)
@@ -140,6 +142,8 @@ class Installation:
 
     def entity_ids(self) -> set[str]:
         ids = set(self.roles.values())
+        for extra in self.alternatives.values():
+            ids |= set(extra)
         for u in [*self.strings, *self.units]:
             ids |= {e for e in (u.power, u.voltage, u.current) if e}
         for b in self.batteries:
@@ -321,9 +325,21 @@ def _from_energy_prefs(prefs: dict[str, Any] | None, inst: Installation, hass: H
                 )
 
 
+def role_entities(inst: Installation, role: str) -> list[str]:
+    """The entities behind a role: the chosen one first, then the alternatives."""
+    return [e for e in [inst.roles.get(role), *inst.alternatives.get(role, [])] if e]
+
+
 def _apply_yaml(cfg: HubConfig, inst: Installation, all_entity_ids: list[str]) -> None:
-    for role, entity_id in cfg.entities.items():
-        inst.roles[role] = entity_id
+    known = set(all_entity_ids)
+    for role, ids in cfg.entities.items():
+        if not ids:
+            continue
+        # The first entity that exists here drives the role; the others become alternatives.
+        primary = next((e for e in ids if e in known), ids[0])
+        inst.roles[role] = primary
+        if extra := [e for e in ids if e != primary]:
+            inst.alternatives[role] = extra
     if cfg.forecast:
         inst.roles["forecast_power"] = cfg.forecast[0]
     for battery_cfg in cfg.batteries:
@@ -331,6 +347,8 @@ def _apply_yaml(cfg: HubConfig, inst: Installation, all_entity_ids: list[str]) -
     for entity_id in cfg.ignore:
         inst.excluded[entity_id] = "ignore"
     inst.roles = {r: e for r, e in inst.roles.items() if e not in inst.excluded}
+    inst.alternatives = {role: [e for e in ids if e not in inst.excluded] for role, ids in inst.alternatives.items()}
+    inst.alternatives = {role: ids for role, ids in inst.alternatives.items() if ids}
     inst.strings = [u for u in inst.strings if (u.power or u.voltage) not in inst.excluded]
     inst.units = [u for u in inst.units if u.power not in inst.excluded]
     inst.batteries = [b for b in inst.batteries if b.soc not in inst.excluded]

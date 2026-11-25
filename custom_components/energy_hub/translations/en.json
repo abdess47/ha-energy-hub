@@ -24,6 +24,23 @@
           "demo": "Demo mode (simulated installation)",
           "show_panel": "Show the panel in the sidebar"
         }
+      },
+      "entities": {
+        "title": "Entities per role",
+        "description": "Pick the entity behind each role. Leave a role empty to keep the automatic detection. Several entities are allowed: the solar power adds them up, the other roles keep the first one that answers, which is how an alternative data source is declared.",
+        "data": {
+          "pv_power": "Solar production power (several entities are added up)",
+          "pv_energy": "Solar production energy",
+          "grid_power": "Grid power (consumption signed +, injection -)",
+          "grid_import_energy": "Grid import energy",
+          "grid_export_energy": "Grid export energy",
+          "load_power": "House consumption power",
+          "forecast_power": "Solar forecast power",
+          "forecast_energy_today": "Solar forecast energy today",
+          "irradiance": "Irradiance",
+          "tariff_price": "Energy price",
+          "tariff_color": "Tariff colour"
+        }
       }
     }
   },

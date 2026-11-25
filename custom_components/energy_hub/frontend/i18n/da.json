@@ -415,5 +415,13 @@
     "forecast": "fra prognoseintegrationen",
     "weather": "klar himmel × (1 − 0,75 N^3,4), N skydækket",
     "clearsky": "ingen indstrålingssensor, prognose eller vejrentitet fundet"
-  }
+  },
+  "entities": "Entiteter",
+  "entities_hint": "Vælg entiteten bag hver rolle. Et tomt felt beholder den automatiske registrering.",
+  "entities_multi": "summeres",
+  "entities_one": "første svarer",
+  "entities_format": "Flere entiteter adskilt af kommaer. Solcelleeffekten summeres; for de øvrige vinder den første, der svarer – så angiver du en alternativ kilde.",
+  "entities_save": "Gem",
+  "entities_saved": "Gemt",
+  "entities_failed": "Mislykkedes"
 }

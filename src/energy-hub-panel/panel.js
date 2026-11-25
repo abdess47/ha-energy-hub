@@ -47,12 +47,14 @@ export class EnergyHubPanel extends HTMLElement {
     this._unsub = null;
   }
 
-  async _connect() {
+  async _connect(quiet = false) {
     try {
       this._unsub = this._hass.connection.subscribeMessage(
         (data) => {
           this._data = data;
-          this._render();
+          // Typing in the Entities form: wait for the field to lose focus, or the 30-second push would wipe it.
+          if (this.shadowRoot.activeElement?.classList?.contains('entin')) this._renderLater = true;
+          else this._render();
         },
         { type: 'energy_hub/subscribe' },
       );
@@ -60,9 +62,36 @@ export class EnergyHubPanel extends HTMLElement {
       this._settings = await this._hass.callWS({ type: 'energy_hub/settings' });
       this._render();
     } catch (err) {
+      if (quiet) throw err;
       this._error = err?.message || String(err);
       this._render();
     }
+  }
+
+  /** Entity ids typed in a field that this Home Assistant does not know (outlined, still savable as a fallback). */
+  _unknownEntities(value) {
+    const states = this._hass?.states || {};
+    return value
+      .split(/[\s,]+/)
+      .filter(Boolean)
+      .filter((id) => !states[id]);
+  }
+
+  async _resubscribe() {
+    this._unsub?.then((u) => u()).catch(() => {});
+    this._unsub = null;
+    // The reload takes a moment: retry until the new coordinator answers (about 15 s at most).
+    for (let i = 0; i < 15; i += 1) {
+      await new Promise((r) => setTimeout(r, 1000));
+      try {
+        await this._connect(true);
+        return;
+      } catch (_err) {
+        this._unsub = null;
+      }
+    }
+    this._error = 'Energy Hub did not come back after the reload';
+    this._render();
   }
 
   // ---------- helpers
@@ -983,7 +1012,7 @@ export class EnergyHubPanel extends HTMLElement {
 
   _setSources() {
     const d = this._data;
-    let o = '';
+    let o = this._entitiesBox();
     const sugg = d.suggestions || [];
     if (sugg.length) {
       o += this._box(this._t('suggestions'), `${sugg.length}`, sugg.map((s) => `<div class="sugg"><span class="pa sm" style="background:#EEEDFE;color:#3C3489">${ehIcon('lightbulb-on-outline', 14)}</span><div class="tt"><div class="a1">${ehEsc(this._t(`suggest.${s.kind}`, { bms: s.bms || '', battery: s.battery || '' }))}</div><div class="t3">${s.correlation != null ? ehEsc(this._t('correlation', { v: this._num(s.correlation, 2) })) : ''}</div></div>${this._snip(s.yaml)}</div>`).join(''));
@@ -1005,6 +1034,24 @@ export class EnergyHubPanel extends HTMLElement {
     const excl = Object.entries(d.excluded || {}).map(([e, why]) => `<tr><td>${ehEsc(this._t('excluded'))}</td><td><code class="muted">${ehEsc(e)}</code></td><td class="age">${ehEsc(this._t(`excluded_reason.${why}`))}</td></tr>`).join('');
     if (excl) o += this._box(this._t('excluded'), '', `<table class="roles">${excl}</table>`);
     return o;
+  }
+
+  _entitiesBox() {
+    const e = this._data.entities || {};
+    const roles = e.all && e.all.length ? e.all : Object.keys(e.roles || {});
+    if (!roles.length) return '';
+    const chosen = e.configured || {};
+    const detected = e.roles || {};
+    const rows = roles
+      .map((role) => {
+        const cur = this._entDraft?.[role] ?? (chosen[role] || []).join(', ');
+        const auto = detected[role] || [];
+        const many = (e.multi || []).includes(role);
+        return `<div class="entrow"><label class="a1">${ehEsc(this._roleLabel(role))}</label><input class="entin" data-erole="${ehEsc(role)}" aria-label="${ehEsc(this._roleLabel(role))}" value="${ehEsc(cur)}" placeholder="${ehEsc(auto.join(', '))}" spellcheck="false" autocomplete="off"><span class="t3">${ehEsc(this._t(many ? 'entities_multi' : 'entities_one'))}</span></div>`;
+      })
+      .join('');
+    const bar = `<div class="entbar"><button class="copy" data-action="save-entities">${ehIcon('check', 14)} ${ehEsc(this._t('entities_save'))}</button><span class="hint">${ehEsc(this._t('entities_format'))}</span></div>`;
+    return this._box(this._t('entities'), this._t('entities_hint'), rows + bar);
   }
 
   _quality() {
@@ -1274,6 +1321,47 @@ export class EnergyHubPanel extends HTMLElement {
       } catch (_err) {
         // kept as is
       }
+    });
+    for (const el of root.querySelectorAll('[data-erole]')) {
+      const check = () => el.classList.toggle('bad', this._unknownEntities(el.value).length > 0);
+      check();
+      el.addEventListener('input', () => {
+        this._entDraft = { ...this._entDraft, [el.dataset.erole]: el.value };
+        check();
+      });
+      el.addEventListener('blur', () => {
+        // Moving to the next field keeps the focus inside the form: render only once it really leaves.
+        setTimeout(() => {
+          if (this._renderLater && !this.shadowRoot.activeElement?.classList?.contains('entin')) {
+            this._renderLater = false;
+            this._render();
+          }
+        }, 0);
+      });
+    }
+    root.querySelector('[data-action="save-entities"]')?.addEventListener('click', async (ev) => {
+      const btn = ev.currentTarget;
+      const roles = {};
+      for (const el of root.querySelectorAll('[data-erole]')) {
+        roles[el.dataset.erole] = el.value
+          .split(/[\s,]+/)
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+      btn.disabled = true;
+      try {
+        await this._hass.callWS({ type: 'energy_hub/set_entities', roles });
+        btn.textContent = this._t('entities_saved');
+        this._entDraft = null;
+        this._renderLater = false;
+      } catch (err) {
+        btn.textContent = this._t('entities_failed');
+        btn.title = err?.message || '';
+        btn.disabled = false;
+        return;
+      }
+      // Saving reloads the integration: the subscription belonged to the old coordinator, take a new one.
+      await this._resubscribe();
     });
     root.querySelector('[data-action="menu"]')?.addEventListener('click', () => this.dispatchEvent(new Event('hass-toggle-menu', { bubbles: true, composed: true })));
     this._bindCurve();

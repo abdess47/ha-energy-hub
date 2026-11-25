@@ -24,6 +24,23 @@
           "demo": "Demotilstand (simuleret anlæg)",
           "show_panel": "Vis panelet i sidepanelet"
         }
+      },
+      "entities": {
+        "title": "Entiteter pr. rolle",
+        "description": "Vælg entiteten bag hver rolle. Et tomt felt beholder den automatiske registrering. Flere entiteter er tilladt: solcelleeffekten summeres, de øvrige bruger den første, der svarer – så angiver du en alternativ kilde.",
+        "data": {
+          "pv_power": "Solproduktion (flere summeres)",
+          "pv_energy": "Solenergi",
+          "grid_power": "Neteffekt (køb +, salg -)",
+          "grid_import_energy": "Købt energi",
+          "grid_export_energy": "Solgt energi",
+          "load_power": "Husets forbrug",
+          "forecast_power": "Prognostiseret solproduktion",
+          "forecast_energy_today": "Solprognose i dag",
+          "irradiance": "Indstråling",
+          "tariff_price": "Energipris",
+          "tariff_color": "Tariffarve"
+        }
       }
     }
   },
