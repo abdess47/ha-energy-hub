@@ -7,6 +7,14 @@ export const EH_TEAL = '#1D9E75';
 export const EH_BLUE = '#378ADD';
 export const EH_RED = '#E24B4A';
 export const EH_VIOLET = '#7F77DD';
+// Large consumers: a colour and an icon per kind; a second consumer of the same kind takes the next shade.
+export const EH_CONSUMER_STYLE = {
+  ev_charger: [['#D4537E', '#993556', '#ED93B1'], 'ev-station'],
+  heat_pump: [['#D85A30', '#993C1D', '#F0997B'], 'heat-pump-outline'],
+  climate: [['#185FA5', '#0C447C', '#85B7EB'], 'air-conditioner'],
+  water_heater: [['#639922', '#27500A', '#97C459'], 'water-boiler'],
+  other: [['#888780', '#5F5E5A', '#B4B2A9'], 'power-plug-outline'],
+};
 
 export function ehEsc(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);

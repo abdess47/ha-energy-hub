@@ -3,7 +3,9 @@
 1. the Energy dashboard's preferences (``energy/get_prefs``): solar, grid and battery energies and their powers;
 2. the profile of each source integration (``profiles/<integration>.yaml``): roles, strings, micro-inverters,
    batteries, signs and capabilities, matched on the entity ids of that integration;
-3. the user's YAML (``entities:``, ``batteries:``, ``forecast:``, ``ignore:``).
+3. the user's YAML (``entities:``, ``batteries:``, ``consumers:``, ``forecast:``, ``ignore:``).
+
+Large consumers come from the Energy dashboard's individual devices and from ``consumers:``.
 
 Every capability carries a status: ``provided`` by the source, ``estimated`` by the hub, or ``absent``.
 """
@@ -22,7 +24,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
-from .config import BatteryConfig, HubConfig
+from .config import BatteryConfig, ConsumerConfig, HubConfig
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -111,6 +113,58 @@ class BatterySource:
 
 
 @dataclass(slots=True)
+class ConsumerSource:
+    """A large consumer (EV charger, heat pump…) drawn apart from the rest of the home."""
+
+    key: str
+    name: str
+    platform: str
+    power: str | None = None
+    energy: str | None = None
+    kind: str = "other"
+    import_price: float | None = None
+    separate_meter: bool = False
+
+
+# A consumer's kind guessed from its entity id, for its icon and colour (YAML ``kind:`` wins). Words are matched
+# between underscores: ``_`` is a word character for ``\b``, so ``(?:^|_)`` and ``(?:_|$)`` mark their edges.
+_W0, _W1 = r"(?:^|_)", r"(?:_|$)"
+CONSUMER_KIND_PATTERNS = (
+    (
+        "ev_charger",
+        re.compile(
+            rf"wallbox|ev_?charger|car_?charger|charge_?point|easee|zappi|evse|ohme|pod_point|wallbe|tesla_wall"
+            rf"|{_W0}(?:ev|borne|irve){_W1}"
+        ),
+    ),
+    (
+        "heat_pump",
+        re.compile(
+            rf"heat_?pump|w(?:ae|a)rmepumpe|daikin|altherma|aquarea|ecodan|nibe|vaillant|viessmann|stiebel"
+            rf"|{_W0}(?:pac|wp){_W1}"
+        ),
+    ),
+    ("water_heater", re.compile(rf"water_heater|boiler|cumulus|chauffe_eau|{_W0}(?:ballon|dhw){_W1}")),
+    ("climate", re.compile(rf"climate|aircon|air_?con|hvac|{_W0}(?:ac|clim|climatisation){_W1}")),
+)
+
+
+def consumer_key(entity_id: str, taken: set[str]) -> str:
+    """A key that stays with its entity: the entity's object id, made unique."""
+    base = re.sub(r"[^a-z0-9_]+", "_", entity_id.partition(".")[2].lower()).strip("_") or "consumer"
+    key, n = base, 2
+    while key in taken:
+        key, n = f"{base}_{n}", n + 1
+    taken.add(key)
+    return key
+
+
+def consumer_kind(entity_id: str | None) -> str:
+    object_id = (entity_id or "").partition(".")[2]
+    return next((kind for kind, pattern in CONSUMER_KIND_PATTERNS if pattern.search(object_id)), "other")
+
+
+@dataclass(slots=True)
 class SourceInfo:
     """A source integration as the Settings tab shows it."""
 
@@ -133,6 +187,7 @@ class Installation:
     strings: list[UnitSource] = field(default_factory=list)
     units: list[UnitSource] = field(default_factory=list)
     batteries: list[BatterySource] = field(default_factory=list)
+    consumers: list[ConsumerSource] = field(default_factory=list)
     sources: list[SourceInfo] = field(default_factory=list)
     excluded: dict[str, str] = field(default_factory=dict)
     # What the detection could not decide alone (a BMS to attach to a battery…), shown in the Settings tab.
@@ -162,6 +217,8 @@ class Installation:
                 if e
             }
             ids |= set(b.cells) | set(b.cell_temperatures)
+        for c in self.consumers:
+            ids |= {e for e in (c.power, c.energy) if e}
         return ids
 
 
@@ -325,6 +382,47 @@ def _from_energy_prefs(prefs: dict[str, Any] | None, inst: Installation, hass: H
                 )
 
 
+def _consumers_from_prefs(prefs: dict[str, Any] | None, inst: Installation, hass: HomeAssistant) -> None:
+    """The Energy dashboard's individual devices, as large consumers. A device counted inside another one
+    (``included_in_stat``) is left out: its energy is already in its parent's. The key comes from the entity, not
+    from the position in the list, so that reordering the devices keeps each one's history and colour."""
+    taken = {c.key for c in inst.consumers}
+    for device in (prefs or {}).get("device_consumption") or []:
+        energy = device.get("stat_consumption")
+        if not energy or device.get("included_in_stat"):
+            continue
+        state = hass.states.get(energy)
+        name = device.get("name") or (state.attributes.get("friendly_name") if state else None) or energy
+        inst.consumers.append(
+            ConsumerSource(
+                key=consumer_key(energy, taken),
+                name=str(name),
+                platform="energy",
+                power=device.get("stat_rate"),
+                energy=energy,
+                kind=consumer_kind(device.get("stat_rate") or energy),
+            )
+        )
+
+
+def _merge_consumer(cfg: ConsumerConfig, inst: Installation) -> None:
+    """A YAML consumer: completes the detected one with the same entity, or is added."""
+    same = next(
+        (c for c in inst.consumers if (cfg.energy and c.energy == cfg.energy) or (cfg.power and c.power == cfg.power)),
+        None,
+    )
+    if same is None:
+        same = ConsumerSource(key=cfg.key, name=cfg.name, platform="yaml")
+        inst.consumers.append(same)
+    same.key = cfg.key
+    same.name = cfg.name
+    same.power = cfg.power or same.power
+    same.energy = cfg.energy or same.energy
+    same.kind = cfg.kind if cfg.kind != "other" else consumer_kind(same.power or same.energy)
+    same.import_price = cfg.import_price
+    same.separate_meter = cfg.separate_meter
+
+
 def role_entities(inst: Installation, role: str) -> list[str]:
     """The entities behind a role: the chosen one first, then the alternatives."""
     return [e for e in [inst.roles.get(role), *inst.alternatives.get(role, [])] if e]
@@ -344,6 +442,8 @@ def _apply_yaml(cfg: HubConfig, inst: Installation, all_entity_ids: list[str]) -
         inst.roles["forecast_power"] = cfg.forecast[0]
     for battery_cfg in cfg.batteries:
         _merge_battery(battery_cfg, inst, all_entity_ids)
+    for consumer_cfg in cfg.consumers:
+        _merge_consumer(consumer_cfg, inst)
     for entity_id in cfg.ignore:
         inst.excluded[entity_id] = "ignore"
     inst.roles = {r: e for r, e in inst.roles.items() if e not in inst.excluded}
@@ -352,6 +452,7 @@ def _apply_yaml(cfg: HubConfig, inst: Installation, all_entity_ids: list[str]) -
     inst.strings = [u for u in inst.strings if (u.power or u.voltage) not in inst.excluded]
     inst.units = [u for u in inst.units if u.power not in inst.excluded]
     inst.batteries = [b for b in inst.batteries if b.soc not in inst.excluded]
+    inst.consumers = [c for c in inst.consumers if not {c.power, c.energy} & set(inst.excluded)]
 
 
 def _merge_battery(cfg: BatteryConfig, inst: Installation, all_entity_ids: list[str]) -> None:
@@ -465,6 +566,7 @@ def discover(
             if info:
                 inst.sources.append(info)
     _from_energy_prefs(prefs, inst, hass)
+    _consumers_from_prefs(prefs, inst, hass)
     if prefs and any(s.get("type") in ("solar", "grid", "battery") for s in prefs.get("energy_sources", [])):
         inst.sources.append(SourceInfo("energy", "Energy dashboard", "energy", "core", "", "prefs", {}, []))
     all_ids = [e.entity_id for e in entries] + [s.entity_id for s in hass.states.async_all("sensor")]
