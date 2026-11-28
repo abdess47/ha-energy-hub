@@ -37,6 +37,15 @@ from .analytics.mismatch import score_units
 from .analytics.shading import MIN_CLEAR_DAYS, recurring_shading
 from .analytics.soiling import MIN_DAYS as SOILING_DAYS
 from .analytics.soiling import soiling_srr
+from .analytics.strings import (
+    DeclaredUnit,
+    UnitLoss,
+    capacity_shares,
+    declared_units,
+    installed_kwp,
+    production_kwh,
+    unit_losses,
+)
 from .config import MULTI_ROLES, ROLES, HubConfig
 from .history import History, Reading
 from .sources import DEFAULT_CAPACITY_KWH, Installation, role_entities
@@ -63,23 +72,25 @@ def _r(value: float | None, digits: int = 2) -> float | None:
     return None if value is None else round(value, digits)
 
 
-def estimate_kwp(cfg: HubConfig, history: History) -> tuple[float, bool]:
-    """Installed kWp: from the planes in YAML, else 1.15 × the highest daily peak seen (estimated)."""
-    if cfg.kwp:
-        return cfg.kwp, False
+def estimate_kwp(cfg: HubConfig, history: History, units: list[DeclaredUnit] | None = None) -> tuple[float, bool]:
+    """Installed kWp: the planes plus every declared string and panel, else 1.15 × the highest daily peak seen."""
+    kwp = installed_kwp(cfg, units or [])
+    if kwp:
+        return round(kwp, 3), False
     peaks = [d["peak"] for d in history.days.values() if d.get("peak")]
     return (round(max(peaks) * 1.15, 2), True) if peaks else (0.0, True)
 
 
-def _daily_pi(history: History) -> list[tuple[date, float, float]]:
+def _daily_pi(history: History, pv_of: Any = None) -> list[tuple[date, float, float]]:
     """(day, performance index, rain) of each past day with enough expected energy, oldest first."""
     rows = []
     for key in sorted(history.days)[:-1]:
         d = history.days[key]
         ref = d.get("clearsky") or 0.0
-        if ref < 0.5 or d["pv"] <= 0:
+        pv = pv_of(d) if pv_of else d["pv"]
+        if ref < 0.5 or pv <= 0:
             continue
-        rows.append((date.fromisoformat(key), d["pv"] / ref, d.get("rain", 0.0)))
+        rows.append((date.fromisoformat(key), pv / ref, d.get("rain", 0.0)))
     return rows
 
 
@@ -130,6 +141,39 @@ def _unit_shading(history: History) -> list[tuple[str | None, Any]] | None:
     return found if enough else None
 
 
+def _unit_loss_fields(loss: UnitLoss | None, unit: Any = None) -> dict[str, Any]:
+    """The per-unit fields added to a strings[]/units[] record: declaration first, then the unit's own losses."""
+    if loss is None:
+        return {
+            "kwp": _r(getattr(unit, "kwp", None), 2),
+            "tilt": _r(getattr(unit, "tilt", None), 1),
+            "azimuth": _r(getattr(unit, "azimuth", None), 1),
+            "count_in_total": getattr(unit, "count_in_total", True),
+            "expected_kwh": None,
+            "yield": None,
+            "performance": None,
+            "soiling": None,
+            "shading_kwh": None,
+            "mismatch": None,
+            "clipping_kwh": None,
+            "degradation_pct": None,
+        }
+    return {
+        "kwp": _r(loss.kwp, 2),
+        "tilt": _r(loss.tilt, 1),
+        "azimuth": _r(loss.azimuth, 1),
+        "count_in_total": loss.count_in_total,
+        "expected_kwh": _r(loss.expected_kwh, 2),
+        "yield": _r(loss.yield_kwh_per_kwp, 2),
+        "performance": _r(loss.performance, 3),
+        "soiling": _r(loss.soiling, 4),
+        "shading_kwh": _r(loss.shading_kwh, 2),
+        "mismatch": _r(loss.mismatch, 3),
+        "clipping_kwh": _r(loss.clipping_kwh, 2),
+        "degradation_pct": _r(loss.degradation_pct, 2),
+    }
+
+
 def build_snapshot(
     history: History,
     inst: Installation,
@@ -138,13 +182,31 @@ def build_snapshot(
     now: datetime,
     ages: dict[str, float] | None = None,
     demo: bool = False,
+    latitude: float | None = None,
+    longitude: float | None = None,
 ) -> dict[str, Any]:
     today = now.date()
     day_start = now.replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
     rec = history.day(today)
     yrec = history.days.get((today - timedelta(days=1)).isoformat())
-    kwp, kwp_estimated = estimate_kwp(cfg, history)
+    declared = declared_units(cfg, inst)
+    pv_entities = set(role_entities(inst, "pv_power"))
+    kwp, kwp_estimated = estimate_kwp(cfg, history, declared)
+    shares = capacity_shares(declared, kwp)
+
+    def pv_of(record: dict[str, Any] | None) -> float:
+        """PV total of a day: the meters plus the declared strings the ``pv_power`` role misses."""
+        return production_kwh(record, declared, pv_entities) if record else 0.0
+
     bal = _balance(rec)
+    if pv_of(rec) != bal.pv:
+        bal = Balance(
+            pv=pv_of(rec),
+            grid_import=bal.grid_import,
+            grid_export=bal.grid_export,
+            battery_in=bal.battery_in,
+            battery_out=bal.battery_out,
+        )
     ybal = _balance(yrec)
 
     # ---- today's curve and clipping
@@ -182,7 +244,7 @@ def build_snapshot(
         rec["limited"] = round(limited, 4)
 
     # ---- trends
-    rows = _daily_pi(history)
+    rows = _daily_pi(history, pv_of)
     clear = _clear_days(rows)
     soiling = soiling_srr([r[1] for r in clear], rain=[r[2] for r in clear]) if len(clear) >= SOILING_DAYS else None
     degr = degradation_yoy({r[0].toordinal(): r[1] for r in clear}) if rows else None
@@ -193,6 +255,21 @@ def build_snapshot(
         shading = [(None, w) for w in shading] if shading is not None else None
     shading_today = sum(w.kwh_per_day for _u, w in shading or []) if bal.pv else 0.0
     soiling_today = bal.pv * (1 / soiling.ratio - 1) if soiling and soiling.ratio > 0 else 0.0
+    # Every declared string and panel, weighed on its own orientation: soiling, shading, mismatch, clipping and
+    # degradation of each line, next to the installation-wide figures that stay unchanged.
+    unit_loss = unit_losses(
+        history.days,
+        clear,
+        declared,
+        kwp,
+        today=today,
+        shares=shares,
+        latitude=latitude,
+        longitude=longitude,
+        tz=now.tzinfo,
+        shading=shading,
+        today_clipping=rec.get("clipped", 0.0),
+    )
 
     # ---- strings, panels
     def unit_days(kind: str, count: int) -> list[dict[str, tuple[float, float]]]:
@@ -200,8 +277,7 @@ def build_snapshot(
         for key in sorted(history.days)[-8:]:
             values = history.days[key][kind]
             if values:
-                share = kwp / max(len(values), 1) if kwp else 1.0
-                days.append({n: (e, share) for n, e in values.items()})
+                days.append({n: (e, shares.get(n) or kwp / max(len(values), 1) if kwp else 1.0) for n, e in values.items()})
         return days[-count:]
 
     string_scores = {s.name: s for s in score_units(unit_days("strings", 7))}
@@ -213,6 +289,7 @@ def build_snapshot(
             "kwh": _r(rec["strings"].get(u.name), 2),
             "relative": _r(string_scores[u.name].relative, 3) if u.name in string_scores else None,
             "lagging_days": string_scores[u.name].lagging_days if u.name in string_scores else 0,
+            **_unit_loss_fields(unit_loss.get(u.name), u),
         }
         for u in inst.strings
     ]
@@ -224,6 +301,7 @@ def build_snapshot(
             "kwh": _r(rec["units"].get(u.name), 3),
             "pct": round(rec["units"].get(u.name, 0) / best_unit * 100) if best_unit else None,
             "lagging_days": unit_scores[u.name].lagging_days if u.name in unit_scores else 0,
+            **_unit_loss_fields(unit_loss.get(u.name), u),
         }
         for u in inst.units
     ]
@@ -233,11 +311,11 @@ def build_snapshot(
     for key in sorted(history.days)[-31:-1]:
         d = history.days[key]
         if d.get("expected", 0) > 0.3:
-            epi_30.append({"d": key, "epi": _r(d["pv"] / d["expected"], 3), "rain": d.get("rain", 0) >= 1})
+            epi_30.append({"d": key, "epi": _r(pv_of(d) / d["expected"], 3), "rain": d.get("rain", 0) >= 1})
     months: dict[str, dict[str, float]] = {}
     for key, d in history.days.items():
         m = months.setdefault(key[:7], {"kwh": 0.0, "expected": 0.0, "clearsky": 0.0, "days": 0})
-        m["kwh"] += d["pv"]
+        m["kwh"] += pv_of(d)
         m["expected"] += d.get("expected", 0.0)
         m["clearsky"] += d.get("clearsky", 0.0)
         m["days"] += 1
@@ -250,7 +328,7 @@ def build_snapshot(
     month_causes = {
         "clipping": sum(d.get("clipped", 0) for d in month_days),
         "shading": (sum(w.kwh_per_day for _u, w in shading) * len(month_days)) if shading else 0.0,
-        "soiling": sum(d["pv"] for d in month_days) * (1 / soiling.ratio - 1) if soiling and soiling.ratio else 0.0,
+        "soiling": sum(pv_of(d) for d in month_days) * (1 / soiling.ratio - 1) if soiling and soiling.ratio else 0.0,
         "limitation": sum(d.get("limited", 0) for d in month_days),
         "unavailability": sum(d.get("unavailable", 0) for d in month_days),
     }
@@ -258,7 +336,7 @@ def build_snapshot(
         {"d": key, "h": [_r(x, 3) for x in history.days[key].get("clip_h", [0.0] * 24)[10:17]]}
         for key in sorted(history.days)[-30:]
     ]
-    month_pv = sum(d["pv"] for d in month_days)
+    month_pv = sum(pv_of(d) for d in month_days)
     availability = 1 - month_causes["unavailability"] / max(month_pv + month_causes["unavailability"], 1e-6)
 
     # ---- batteries
@@ -336,7 +414,7 @@ def build_snapshot(
         # Self-consumption valued at the price of its half hour when the contract's prices were known that day.
         if "self_eur" in d:
             return d["self_eur"] + d["export"] * cfg.export_price
-        return savings(max(d["pv"] - d["export"], 0), d["export"], cfg.import_price, cfg.export_price).total
+        return savings(max(pv_of(d) - d["export"], 0), d["export"], cfg.import_price, cfg.export_price).total
 
     gains_by_day = {k: gain(d) for k, d in history.days.items()}
     year_keys = days_sorted[-365:]
@@ -363,7 +441,7 @@ def build_snapshot(
         else None
     )
     year_records = [history.days[k] for k in year_keys]
-    direct = sum(max(d["pv"] - d["export"] - sum(d["batt_in"].values()), 0) for d in year_records)
+    direct = sum(max(pv_of(d) - d["export"] - sum(d["batt_in"].values()), 0) for d in year_records)
     restored = sum(sum(d["batt_out"].values()) for d in year_records)
     exported = sum(d["export"] for d in year_records)
     monthly_gains = {}
@@ -502,6 +580,17 @@ def build_snapshot(
                 "produced": _r(bal.pv),
             },
             "month": {k: _r(v) for k, v in month_causes.items()},
+            # Each declared string and panel on its own orientation: the same fields as its strings[]/units[] record.
+            "strings": [
+                {
+                    "name": loss.name,
+                    "kind": loss.kind,
+                    "kwh": _r(loss.production_kwh, 2),
+                    **_unit_loss_fields(loss),
+                }
+                for loss in unit_loss.values()
+            ],
+
             "month_eur": _r(sum(month_causes.values()) * cfg.import_price),
             "availability": _r(availability, 4),
             "heatmap": heatmap,
