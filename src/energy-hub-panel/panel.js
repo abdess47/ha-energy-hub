@@ -1505,18 +1505,9 @@ export class EnergyHubPanel extends HTMLElement {
         this._entDraft = { ...this._entDraft, [el.dataset.erole]: el.value };
         check();
       });
-      el.addEventListener('blur', () => {
-        // Moving to the next field keeps the focus inside the form: render only once it really leaves.
-        setTimeout(() => {
-          if (this._renderLater && !this.shadowRoot.activeElement?.classList?.contains('entin')) {
-            this._renderLater = false;
-            this._render();
-          }
-        }, 0);
-      });
+      el.addEventListener('blur', () => this._deferRender());
     }
     root.querySelector('[data-action="save-entities"]')?.addEventListener('click', async (ev) => {
-      const btn = ev.currentTarget;
       const roles = {};
       for (const el of root.querySelectorAll('[data-erole]')) {
         roles[el.dataset.erole] = el.value
@@ -1524,20 +1515,9 @@ export class EnergyHubPanel extends HTMLElement {
           .map((s) => s.trim())
           .filter(Boolean);
       }
-      btn.disabled = true;
-      try {
-        await this._hass.callWS({ type: 'energy_hub/set_entities', roles });
-        btn.textContent = this._t('entities_saved');
+      await this._saveSetting(ev.currentTarget, () => this._hass.callWS({ type: 'energy_hub/set_entities', roles }), () => {
         this._entDraft = null;
-        this._renderLater = false;
-      } catch (err) {
-        btn.textContent = this._t('entities_failed');
-        btn.title = err?.message || '';
-        btn.disabled = false;
-        return;
-      }
-      // Saving reloads the integration: the subscription belonged to the old coordinator, take a new one.
-      await this._resubscribe();
+      });
     });
     const instInputs = [...root.querySelectorAll('[data-pfield]'), ...root.querySelectorAll('[data-ufield]')];
     for (const el of instInputs) {
@@ -1550,14 +1530,7 @@ export class EnergyHubPanel extends HTMLElement {
         // Editing a detected unit turns it into a declared one, so it has to be persisted.
         if (kind !== 'planes') row._edited = true;
       });
-      el.addEventListener('blur', () => {
-        setTimeout(() => {
-          if (this._renderLater && !this.shadowRoot.activeElement?.classList?.contains('entin')) {
-            this._renderLater = false;
-            this._render();
-          }
-        }, 0);
-      });
+      el.addEventListener('blur', () => this._deferRender());
     }
     const onAction = (name, fn) => {
       for (const el of root.querySelectorAll(`[data-action="${name}"]`)) el.addEventListener('click', (ev) => fn(ev.currentTarget));
@@ -1578,27 +1551,54 @@ export class EnergyHubPanel extends HTMLElement {
       this._instRows(btn.dataset.ukind).splice(Number(btn.dataset.ui), 1);
       this._render();
     });
-    const saveInstallation = async (btn, groups) => {
-      btn.disabled = true;
-      try {
-        await this._hass.callWS({ type: 'energy_hub/set_installation', ...this._instPayload(groups) });
-        btn.textContent = this._t('entities_saved');
-        this._instDraft = null;
-        this._instBase = null;
-        this._renderLater = false;
-      } catch (err) {
-        btn.textContent = this._t('entities_failed');
-        btn.title = err?.message || '';
-        btn.disabled = false;
-        return;
-      }
-      // Saving reloads the integration: the subscription belonged to the old coordinator, take a new one.
-      await this._resubscribe();
-    };
+    const saveInstallation = (btn, groups) =>
+      this._saveSetting(
+        btn,
+        () => this._hass.callWS({ type: 'energy_hub/set_installation', ...this._instPayload(groups) }),
+        () => {
+          this._instDraft = null;
+          this._instBase = null;
+        },
+      );
     onAction('save-planes', (btn) => saveInstallation(btn, { planes: this._instRows('planes') }));
     onAction('save-installation', (btn) => saveInstallation(btn, { strings: this._instRows('strings'), panels: this._instRows('panels') }));
     root.querySelector('[data-action="menu"]')?.addEventListener('click', () => this.dispatchEvent(new Event('hass-toggle-menu', { bubbles: true, composed: true })));
     this._bindCurve();
+  }
+
+  /**
+   * Saves a setting over the websocket, then takes a new subscription: saving
+   * reloads the integration, so the old subscription belonged to a coordinator
+   * that no longer exists. The button carries the outcome and comes back when
+   * the call fails, and `clear` drops the draft the saved rows came from.
+   */
+  /**
+   * A render on blur swallows the click on the next field: defer it, and skip it
+   * when the focus only moved from one input to another of the same form.
+   */
+  _deferRender() {
+    setTimeout(() => {
+      if (this._renderLater && !this.shadowRoot.activeElement?.classList?.contains('entin')) {
+        this._renderLater = false;
+        this._render();
+      }
+    }, 0);
+  }
+
+  async _saveSetting(btn, call, clear) {
+    btn.disabled = true;
+    try {
+      await call();
+      btn.textContent = this._t('entities_saved');
+      clear();
+      this._renderLater = false;
+    } catch (err) {
+      btn.textContent = this._t('entities_failed');
+      btn.title = err?.message || '';
+      btn.disabled = false;
+      return;
+    }
+    await this._resubscribe();
   }
 
   _bindCurve() {
