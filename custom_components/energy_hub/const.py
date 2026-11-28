@@ -29,6 +29,7 @@ CONF_FORECAST: Final = "forecast"
 CONF_WEATHER: Final = "weather"
 CONF_PANELS: Final = "panels"
 CONF_STRINGS: Final = "strings"
+CONF_COUNT_IN_TOTAL: Final = "count_in_total"
 
 # Profiles of the user, next to the configuration (kept across updates): /config/energy_hub/profiles/*.yaml
 USER_PROFILES_DIR: Final = "energy_hub/profiles"
