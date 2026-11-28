@@ -11,10 +11,11 @@ Neither Home Assistant nor the engine: everything here works on the history reco
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
 from functools import lru_cache
-from typing import Any, Iterable
+from typing import Any
 
 from .clearsky import Plane, clearsky_power
 from .degradation import degradation_yoy
@@ -169,16 +170,22 @@ def production_kwh(record: dict[str, Any], units: Iterable[DeclaredUnit], pv_ent
     if not pv_entities:
         return max(total, own)
     extra = sum(
-        _num(record.get(u.kind, {}).get(u.name)) or 0.0
-        for u in counted
-        if u.explicit and u.power not in pv_entities
+        _num(record.get(u.kind, {}).get(u.name)) or 0.0 for u in counted if u.explicit and u.power not in pv_entities
     )
     return total + extra
 
 
 @lru_cache(maxsize=8192)
-def _clear_kwh(day: date, kwp: float, tilt: float, azimuth: float, latitude: float, longitude: float, tz: Any) -> float:
-    """Clear-sky energy of one plane on one day (kWh), in the plane's own orientation — cached: a past day never changes."""
+def _clear_kwh(
+    day: date,
+    kwp: float,
+    tilt: float,
+    azimuth: float,
+    latitude: float,
+    longitude: float,
+    tz: Any,
+) -> float:
+    """Clear-sky energy of one plane on one day (kWh), in its own orientation — cached: a past day never changes."""
     plane = Plane(kwp, tilt, azimuth)
     total = 0.0
     for minute in STEPS:
@@ -242,7 +249,7 @@ def unit_losses(
     latitude: float | None = None,
     longitude: float | None = None,
     tz: Any = None,
-    shading: "list[tuple[str | None, Any]] | None" = None,
+    shading: list[tuple[str | None, Any]] | None = None,
     today_clipping: float = 0.0,
     soiling_days: int = SOILING_DAYS,
     degradation_days: int = 730,
@@ -308,7 +315,9 @@ def unit_losses(
             soiling=soiling.loss if soiling else None,
             shading_kwh=shaded if shading else None,
             mismatch=scores.get(unit.name),
-            clipping_kwh=today_clipping * expected_today[unit.name] / expected_total if today_clipping and expected_total else 0.0,
+            clipping_kwh=today_clipping * expected_today[unit.name] / expected_total
+            if today_clipping and expected_total
+            else 0.0,
             degradation_pct=degr.rate_pct_per_year if degr else None,
         )
     return out

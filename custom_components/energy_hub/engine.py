@@ -277,7 +277,9 @@ def build_snapshot(
         for key in sorted(history.days)[-8:]:
             values = history.days[key][kind]
             if values:
-                days.append({n: (e, shares.get(n) or kwp / max(len(values), 1) if kwp else 1.0) for n, e in values.items()})
+                days.append(
+                    {n: (e, shares.get(n) or kwp / max(len(values), 1) if kwp else 1.0) for n, e in values.items()}
+                )
         return days[-count:]
 
     string_scores = {s.name: s for s in score_units(unit_days("strings", 7))}
@@ -590,7 +592,6 @@ def build_snapshot(
                 }
                 for loss in unit_loss.values()
             ],
-
             "month_eur": _r(sum(month_causes.values()) * cfg.import_price),
             "availability": _r(availability, 4),
             "heatmap": heatmap,

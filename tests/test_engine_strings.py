@@ -26,7 +26,7 @@ LAT, LON = 48.1, -1.7
 class DeclaredUnit(UnitConfig):
     """UnitConfig once the strings contract lands: a unit carries its own orientation and whether it counts."""
 
-    __slots__ = ("tilt", "azimuth", "count_in_total")
+    __slots__ = ("azimuth", "count_in_total", "tilt")
 
     def __init__(
         self,
@@ -44,7 +44,9 @@ class DeclaredUnit(UnitConfig):
         self.count_in_total = count_in_total
 
 
-def _hub(*, planes: list[float] | None = None, strings: list[DeclaredUnit] | None = None, cost: float | None = None) -> Any:
+def _hub(
+    *, planes: list[float] | None = None, strings: list[DeclaredUnit] | None = None, cost: float | None = None
+) -> Any:
     """A HubConfig shaped by the contract: ``kwp`` sums the planes, the strings and the panels."""
     from custom_components.energy_hub.analytics.clearsky import Plane
 
@@ -137,7 +139,7 @@ def test_a_second_string_on_its_own_sensor_is_added_once() -> None:
 
 
 def test_a_string_left_out_of_the_total_is_ignored_even_though_it_produces() -> None:
-    """``count_in_total: false``: the string is still shown and still on the roof, but its energy is not in the total."""
+    """``count_in_total: false``: still shown and still on the roof, but its energy is left out of the total."""
     cfg = _hub(
         planes=[6.0],
         strings=[DeclaredUnit("Shelter", power="sensor.shelter_power", kwp=2.0, count_in_total=False)],
@@ -183,7 +185,6 @@ def test_the_strings_kwp_lowers_the_specific_yield_and_shortens_the_payback() ->
     assert off["finances"]["yearly"] == 0
     assert off["finances"]["years_to_break_even"] is None
     assert on["finances"]["gain_at_horizon"] > off["finances"]["gain_at_horizon"]
-
 
 
 def test_each_string_is_weighed_on_its_own_orientation() -> None:

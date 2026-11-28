@@ -509,6 +509,7 @@ async def test_the_settings_payload_lists_the_declared_units(hass: HomeAssistant
     assert settings["kwp"] == pytest.approx(3.28 + 1.5 + 0.4)
     assert settings["strings"][0] == {
         "name": "Toit sud",
+        "declared": True,
         "kwp": 1.5,
         "tilt": 30.0,
         "azimuth": 200.0,

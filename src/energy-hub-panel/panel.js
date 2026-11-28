@@ -1199,6 +1199,10 @@ export class EnergyHubPanel extends HTMLElement {
     for (const kind of ['strings', 'panels']) {
       if (!Array.isArray(groups[kind])) continue;
       payload[kind] = groups[kind]
+        // Only what the user actually declared: a unit merely detected by the profile arrives with
+        // declared=false and is shown for information only, writing it back as a declaration would
+        // make it count twice in the PV total.
+        .filter((u) => txt(u.name) && (u._edited === true || u.declared !== false))
         .map((u) => {
           const o = { name: txt(u.name) };
           for (const k of ['kwp', 'tilt', 'azimuth']) {
@@ -1211,8 +1215,7 @@ export class EnergyHubPanel extends HTMLElement {
           }
           o.count_in_total = u.count_in_total !== false;
           return o;
-        })
-        .filter((u) => u.name);
+        });
     }
     return payload;
   }
@@ -1544,6 +1547,8 @@ export class EnergyHubPanel extends HTMLElement {
         const row = this._instRows(kind)[idx];
         if (!row) return;
         row[el.dataset.ufield || el.dataset.pfield] = el.type === 'checkbox' ? el.checked : el.value;
+        // Editing a detected unit turns it into a declared one, so it has to be persisted.
+        if (kind !== 'planes') row._edited = true;
       });
       el.addEventListener('blur', () => {
         setTimeout(() => {
@@ -1566,7 +1571,7 @@ export class EnergyHubPanel extends HTMLElement {
       this._render();
     });
     onAction('unit-add', (btn) => {
-      this._instRows(btn.dataset.ukind).push({ name: '', kwp: null, tilt: null, azimuth: null, power: '', voltage: '', current: '', count_in_total: true });
+      this._instRows(btn.dataset.ukind).push({ name: '', kwp: null, tilt: null, azimuth: null, power: '', voltage: '', current: '', count_in_total: true, _edited: true });
       this._render();
     });
     onAction('unit-del', (btn) => {

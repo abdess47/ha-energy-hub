@@ -285,10 +285,21 @@ test('the install payload: numbers, optional fields, nameless rows dropped', () 
   assert.deepEqual(plain(p._instPayload({ strings: [] })), { strings: [] });
 });
 
+test('a unit only detected by the profile is never written back as a declaration', () => {
+  const p = panel('en');
+  const detected = { name: 'Inverter 1', power: 'sensor.fsp_sn_current_active_power', count_in_total: true, declared: false };
+  assert.deepEqual(plain(p._instPayload({ strings: [detected] })), { strings: [] });
+  detected._edited = true;
+  assert.deepEqual(plain(p._instPayload({ strings: [detected] })), {
+    strings: [{ name: 'Inverter 1', power: 'sensor.fsp_sn_current_active_power', count_in_total: true }],
+  });
+});
+
 test('saving "Panels & strings" sends energy_hub/set_installation', async () => {
   const p = panel('en');
   p._sub = 'sources';
   p._settingsTab();
+  p._instRows('strings').length = 0; // the demo settings carry detected rows: start from a clean draft
   p._instRows('strings').push({ name: 'Toit sud', kwp: '3.2', tilt: '30', azimuth: '180', power: 'sensor.toit_sud', voltage: '', current: '', count_in_total: true });
   p._instRows('strings').push({ name: '  ', kwp: '9' });
   const calls = [];

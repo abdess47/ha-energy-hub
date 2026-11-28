@@ -249,6 +249,9 @@ def _unit_payload(unit) -> dict[str, Any]:
     """A declared string or panel, as the Settings tab edits it."""
     return {
         "name": unit.name,
+        # Detected by the profile but not declared by the user: the panel must not write it back
+        # as a declaration (that would make it count on top of the pv_power role and double count).
+        "declared": bool(getattr(unit, "declared", False)),
         "kwp": unit.kwp,
         "tilt": unit.tilt,
         "azimuth": unit.azimuth,
