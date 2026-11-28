@@ -104,6 +104,13 @@ class UnitSource:
     voltage: str | None = None
     current: str | None = None
     kwp: float | None = None
+    # Orientation of the plane behind the unit when it differs from the plane's (None: the plane's).
+    tilt: float | None = None
+    azimuth: float | None = None
+    # Whether the unit's production counts in the PV total, and whether the user declared it (YAML or options):
+    # only a declared unit is added on top of the pv_power role, a detected one is already inside the plant's.
+    count_in_total: bool = True
+    declared: bool = False
 
 
 @dataclass(slots=True)
@@ -479,12 +486,22 @@ def _apply_yaml(cfg: HubConfig, inst: Installation, all_entity_ids: list[str]) -
 
 
 def _merge_unit(cfg: UnitConfig, units: list[UnitSource]) -> None:
-    """A panel / string of the YAML: renames the detected one reading the same entity, or is added."""
+    """A panel / string declared by hand: renames the detected one reading the same entity, or is added."""
     same = next(
         (u for u in units if (cfg.power and u.power == cfg.power) or (cfg.voltage and u.voltage == cfg.voltage)),
         None,
     )
-    unit = UnitSource(cfg.name, cfg.power, cfg.voltage, cfg.current, cfg.kwp)
+    unit = UnitSource(
+        cfg.name,
+        cfg.power,
+        cfg.voltage,
+        cfg.current,
+        cfg.kwp,
+        tilt=cfg.tilt,
+        azimuth=cfg.azimuth,
+        count_in_total=cfg.count_in_total,
+        declared=True,
+    )
     if same is None:
         units.append(unit)
         return
@@ -493,6 +510,10 @@ def _merge_unit(cfg: UnitConfig, units: list[UnitSource]) -> None:
     same.voltage = cfg.voltage or same.voltage
     same.current = cfg.current or same.current
     same.kwp = cfg.kwp if cfg.kwp is not None else same.kwp
+    same.tilt = cfg.tilt if cfg.tilt is not None else same.tilt
+    same.azimuth = cfg.azimuth if cfg.azimuth is not None else same.azimuth
+    same.count_in_total = cfg.count_in_total
+    same.declared = True
 
 
 def _merge_battery(cfg: BatteryConfig, inst: Installation, all_entity_ids: list[str]) -> None:

@@ -215,6 +215,19 @@ class EnergyHubCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         pv = role_sum_kw("pv_power")
         if pv is None and (strings or units):
             pv = sum((strings or units).values())
+        elif pv is not None:
+            # A declared unit the pv_power role does not already read (an inverter's string sensor next to the
+            # plant's meter) adds to the total, unless the user keeps it out of it.
+            covered = set(role_entities(inst, "pv_power"))
+            extra = 0.0
+            for unit in (*inst.strings, *inst.units):
+                if not (unit.declared and unit.count_in_total) or unit.power in covered:
+                    continue
+                kw = self._unit_kw(unit)
+                if kw is not None:
+                    extra += kw
+            if extra:
+                pv = round(pv + extra, 4)
         grid = role_kw("grid_power")
         if grid is not None and inst.signs.get("grid_power") == "export_positive":
             grid = -grid
@@ -363,17 +376,22 @@ class EnergyHubCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 return state
         return None
 
-    def _units(self, units) -> dict[str, float]:
+    def _unit_kw(self, unit) -> float | None:
+        """A string / micro-inverter's production in kW: its power sensor, or voltage × current."""
         get = self.hass.states.get
+        if unit.power:
+            kw = power_kw(get(unit.power))
+        else:
+            v, i = _number(get(unit.voltage)), _number(get(unit.current))
+            kw = v * i / 1000 if v is not None and i is not None else None
+        return None if kw is None else max(kw, 0.0)
+
+    def _units(self, units) -> dict[str, float]:
         out = {}
         for u in units:
-            if u.power:
-                kw = power_kw(get(u.power))
-            else:
-                v, i = _number(get(u.voltage)), _number(get(u.current))
-                kw = v * i / 1000 if v is not None and i is not None else None
+            kw = self._unit_kw(u)
             if kw is not None:
-                out[u.name] = max(kw, 0.0)
+                out[u.name] = kw
         return out
 
     def _clearsky(self, now) -> float | None:
